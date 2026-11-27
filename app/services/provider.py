@@ -112,7 +112,9 @@ def update_provider_profile(db: Session, user: User, changes: dict) -> dict:
         db.commit()
     except IntegrityError as exc:
         db.rollback()
-        raise _error(409, "PROFILE_CONFLICT", "The profile could not be updated.") from exc
+        raise _error(
+            409, "PROFILE_CONFLICT", "The profile could not be updated."
+        ) from exc
     db.refresh(profile)
     return get_provider_profile(db, user)
 
@@ -348,7 +350,9 @@ def _decode_cursor(cursor: str) -> dict:
 def _job_location(customer: CustomerProfile | None) -> str:
     if not customer:
         return "Location shared after acceptance"
-    values = [value for value in (customer.default_city, customer.default_state) if value]
+    values = [
+        value for value in (customer.default_city, customer.default_state) if value
+    ]
     return ", ".join(values) if values else "Location shared after acceptance"
 
 
@@ -539,7 +543,9 @@ def get_provider_opportunity(
         )
     ).first()
     if not row:
-        raise _error(404, "JOB_NOT_AVAILABLE", "This job is not available to this provider.")
+        raise _error(
+            404, "JOB_NOT_AVAILABLE", "This job is not available to this provider."
+        )
     return _job_payload(row[0], row[1])
 
 
