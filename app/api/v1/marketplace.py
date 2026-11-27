@@ -1,4 +1,5 @@
 import uuid
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
@@ -22,9 +23,9 @@ router = APIRouter(prefix="/public", tags=["Public marketplace"])
 
 @router.get("/categories", response_model=PublicCategoryEnvelope)
 def get_categories(
-    q: str | None = Query(default=None, max_length=120),
-    parent_id: uuid.UUID | None = Query(default=None, alias="parentId"),
-    limit: int = Query(default=100, ge=1, le=100),
+    q: Annotated[str | None, Query(max_length=120)] = None,
+    parent_id: Annotated[uuid.UUID | None, Query(alias="parentId")] = None,
+    limit: Annotated[int, Query(ge=1, le=100)] = 100,
     db: Session = Depends(get_db_session),
 ) -> dict:
     categories = list_public_categories(
@@ -40,12 +41,12 @@ def get_categories(
 
 @router.get("/providers", response_model=PublicProviderListEnvelope)
 def get_providers(
-    q: str | None = Query(default=None, max_length=120),
-    category: str | None = Query(default=None, max_length=120),
-    city: str | None = Query(default=None, max_length=100),
-    state: str | None = Query(default=None, max_length=100),
-    limit: int = Query(default=20, ge=1, le=50),
-    cursor: str | None = Query(default=None, max_length=512),
+    q: Annotated[str | None, Query(max_length=120)] = None,
+    category: Annotated[str | None, Query(max_length=120)] = None,
+    city: Annotated[str | None, Query(max_length=100)] = None,
+    state: Annotated[str | None, Query(max_length=100)] = None,
+    limit: Annotated[int, Query(ge=1, le=50)] = 20,
+    cursor: Annotated[str | None, Query(max_length=512)] = None,
     db: Session = Depends(get_db_session),
 ) -> dict:
     try:
@@ -69,9 +70,7 @@ def get_providers(
     }
 
 
-@router.get(
-    "/providers/{provider_id}", response_model=PublicProviderDetailEnvelope
-)
+@router.get("/providers/{provider_id}", response_model=PublicProviderDetailEnvelope)
 def get_provider(
     provider_id: uuid.UUID,
     db: Session = Depends(get_db_session),
