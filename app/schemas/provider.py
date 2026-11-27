@@ -116,6 +116,8 @@ class AvailabilityUpdate(BaseModel):
         weekdays = [item.weekday for item in self.schedule]
         if len(weekdays) != len(set(weekdays)):
             raise ValueError("Each weekday may appear only once.")
+        if self.isAvailable and not any(day.enabled for day in self.schedule):
+            raise ValueError("Select a working day or mark yourself unavailable.")
         return self
 
 
