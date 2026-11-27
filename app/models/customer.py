@@ -35,7 +35,10 @@ class Job(TimestampMixin, Base):
             "status IN ('AWAITING_BIDS', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED')",
             name="ck_jobs_status",
         ),
-        CheckConstraint("budget_kobo IS NULL OR budget_kobo >= 0", name="ck_jobs_budget"),
+        CheckConstraint(
+            "budget_kobo IS NULL OR budget_kobo >= 0",
+            name="ck_jobs_budget",
+        ),
         CheckConstraint(
             "agreed_price_kobo IS NULL OR agreed_price_kobo >= 0",
             name="ck_jobs_agreed_price",
