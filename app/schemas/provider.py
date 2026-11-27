@@ -16,7 +16,9 @@ class ProviderProfileUpdate(BaseModel):
     serviceAreaCity: str | None = Field(default=None, max_length=100)
     serviceAreaState: str | None = Field(default=None, max_length=100)
 
-    @field_validator("displayName", "headline", "bio", "serviceAreaCity", "serviceAreaState")
+    @field_validator(
+        "displayName", "headline", "bio", "serviceAreaCity", "serviceAreaState"
+    )
     @classmethod
     def strip_text(cls, value: str | None) -> str | None:
         if value is None:
