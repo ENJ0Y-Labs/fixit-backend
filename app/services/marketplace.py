@@ -132,9 +132,7 @@ def list_public_services(
     has_more = len(services) > limit
     page = services[:limit]
     next_cursor = (
-        encode_service_cursor(page[-1].name, page[-1].id)
-        if has_more and page
-        else None
+        encode_service_cursor(page[-1].name, page[-1].id) if has_more and page else None
     )
     return page, next_cursor
 
