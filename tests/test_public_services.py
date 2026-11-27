@@ -101,9 +101,7 @@ def test_public_service_discovery_and_provider_service_filter():
                 "Wiring repair",
             ]
 
-            first_page = client.get(
-                "/api/v1/public/services", params={"limit": 1}
-            )
+            first_page = client.get("/api/v1/public/services", params={"limit": 1})
             assert first_page.status_code == 200
             first_data = first_page.json()["data"]
             assert len(first_data["items"]) == 1
