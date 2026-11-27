@@ -102,7 +102,8 @@ def _job(factory, customer_id, category_id, status="AWAITING_BIDS"):
 
 def test_customer_profile_can_be_read_and_updated(customer_client):
     client, _, _ = customer_client
-    assert client.get("/api/v1/customer/me").json()["data"]["displayName"] == "Customer One"
+    profile = client.get("/api/v1/customer/me").json()["data"]
+    assert profile["displayName"] == "Customer One"
     response = client.patch(
         "/api/v1/customer/me",
         json={"displayName": "Updated Name", "defaultCity": "Port Harcourt"},
@@ -133,7 +134,8 @@ def test_customer_can_create_list_edit_and_cancel_own_job(customer_client):
     assert job["budgetKobo"] == 2500000
     assert job["budget"] == "25000.00"
     job_id = job["id"]
-    assert client.get("/api/v1/customer/me/jobs").json()["data"]["items"][0]["id"] == job_id
+    jobs = client.get("/api/v1/customer/me/jobs").json()["data"]["items"]
+    assert jobs[0]["id"] == job_id
 
     update = client.patch(
         f"/api/v1/customer/me/jobs/{job_id}",
@@ -207,7 +209,12 @@ def test_customer_can_view_and_accept_bid_atomically(customer_client):
     assert accepted.json()["data"]["status"] == "IN_PROGRESS"
     with factory() as db:
         assert db.get(Bid, bid_id).status == "ACCEPTED"
-        assert db.query(Bid).filter(Bid.job_id == job_id, Bid.status == "DECLINED").count() == 1
+        declined_count = (
+            db.query(Bid)
+            .filter(Bid.job_id == job_id, Bid.status == "DECLINED")
+            .count()
+        )
+        assert declined_count == 1
 
 
 def test_accepting_a_bid_for_another_job_is_rejected(customer_client):
