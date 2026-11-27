@@ -28,9 +28,7 @@ def get_categories(
     limit: Annotated[int, Query(ge=1, le=100)] = 100,
     db: Session = Depends(get_db_session),
 ) -> dict:
-    categories = list_public_categories(
-        db, search=q, parent_id=parent_id, limit=limit
-    )
+    categories = list_public_categories(db, search=q, parent_id=parent_id, limit=limit)
     return {
         "data": {
             "items": [serialize_category(category) for category in categories],
