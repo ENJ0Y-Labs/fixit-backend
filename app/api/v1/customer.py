@@ -3,7 +3,7 @@ import uuid
 from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.orm import Session
 
-from app.api.v1.auth import _require_csrf, current_user, require_role
+from app.api.v1.auth import _require_csrf, require_role
 from app.db.session import get_db_session
 from app.models.user import User
 from app.schemas.customer import CustomerProfileUpdate, JobCreate, JobUpdate
