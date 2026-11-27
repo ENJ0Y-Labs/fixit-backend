@@ -97,7 +97,7 @@ def update_provider_profile(db: Session, user: User, changes: dict) -> dict:
             value = changes[key]
             if key == "displayName" and not value:
                 raise _error(422, "DISPLAY_NAME_REQUIRED", "Display name cannot be blank.")
-            setattr(profile, field, value or None if key != "displayName" else value)
+            setattr(profile, field, value if key == "displayName" else value or None)
     if "phone" in changes:
         phone = changes["phone"] or None
         duplicate = db.scalar(
@@ -280,6 +280,10 @@ def update_provider_availability(db: Session, user_id: uuid.UUID, payload: dict)
             )
         )
     }
+    incoming_weekdays = {day["weekday"] for day in payload["schedule"]}
+    for weekday, item in existing.items():
+        if weekday not in incoming_weekdays:
+            db.delete(item)
     for day in payload["schedule"]:
         item = existing.get(day["weekday"])
         if item is None:
@@ -306,8 +310,17 @@ def _decode_cursor(cursor: str) -> dict:
         value = json.loads(
             base64.urlsafe_b64decode(cursor + "=" * (-len(cursor) % 4)).decode()
         )
-        if not isinstance(value, dict):
+        if (
+            not isinstance(value, dict)
+            or value.get("sort") not in {"newest", "budget-low", "budget-high"}
+            or not isinstance(value.get("id"), str)
+        ):
             raise ValueError
+        uuid.UUID(value["id"])
+        if value["sort"] == "newest":
+            datetime.fromisoformat(value["createdAt"])
+        else:
+            int(value["budget"])
         return value
     except (ValueError, TypeError, binascii.Error, UnicodeDecodeError) as exc:
         raise _error(422, "CURSOR_INVALID", "The pagination cursor is invalid.") from exc
@@ -486,6 +499,9 @@ def list_provider_opportunities(
 
 
 def get_provider_opportunity(db: Session, provider_id: uuid.UUID, job_id: uuid.UUID) -> dict:
+    availability = db.get(ProviderAvailability, provider_id)
+    if availability and not availability.is_available:
+        raise _error(404, "JOB_NOT_AVAILABLE", "This job is not available to this provider.")
     categories = _provider_category_ids(db, provider_id)
     row = db.execute(
         select(Job, CustomerProfile)
@@ -536,6 +552,9 @@ def list_provider_bids(
 def submit_provider_bid(
     db: Session, provider_id: uuid.UUID, job_id: uuid.UUID, payload: dict
 ) -> dict:
+    availability = db.get(ProviderAvailability, provider_id)
+    if availability and not availability.is_available:
+        raise _error(403, "PROVIDER_UNAVAILABLE", "Set yourself available before submitting a bid.")
     job = db.scalar(
         select(Job).where(Job.id == job_id).with_for_update()
     )
@@ -626,7 +645,10 @@ def update_provider_job_progress(
                 raise ValueError
         except ValueError as exc:
             raise _error(422, "VERSION_INVALID", "The job update token is invalid.") from exc
-        if job.updated_at != expected:
+        stored_updated_at = job.updated_at
+        if stored_updated_at.tzinfo is None:
+            stored_updated_at = stored_updated_at.replace(tzinfo=UTC)
+        if stored_updated_at.astimezone(UTC) != expected.astimezone(UTC):
             raise _error(409, "JOB_CHANGED", "This job changed. Refresh before updating it.")
     if transition != "COMPLETE" or job.status != "IN_PROGRESS":
         raise _error(409, "TRANSITION_NOT_ALLOWED", "This job cannot be completed from its current status.")
