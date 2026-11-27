@@ -609,8 +609,9 @@ def submit_provider_bid(
     )
     if existing:
         raise _error(
-            409, "BID_ALREADY_SUBMITTED",
-            "You have already submitted a bid for this job."
+            409,
+            "BID_ALREADY_SUBMITTED",
+            "You have already submitted a bid for this job.",
         )
     proposed = payload.get("proposedSchedule")
     proposed_at = None
@@ -703,8 +704,9 @@ def update_provider_job_progress(
             )
     if transition != "COMPLETE" or job.status != "IN_PROGRESS":
         raise _error(
-            409, "TRANSITION_NOT_ALLOWED",
-            "This job cannot be completed from its current status."
+            409,
+            "TRANSITION_NOT_ALLOWED",
+            "This job cannot be completed from its current status.",
         )
     job.status = "COMPLETED"
     db.commit()
