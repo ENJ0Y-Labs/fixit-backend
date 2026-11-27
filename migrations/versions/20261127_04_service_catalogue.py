@@ -29,17 +29,17 @@ def upgrade() -> None:
         sa.Column("is_active", sa.Boolean(), nullable=False, server_default=sa.true()),
         sa.Column("sort_order", sa.Integer(), nullable=False, server_default="0"),
         sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            nullable=False,
+            server_default=sa.func.now(),
+        ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
             nullable=False,
             server_default=sa.func.now(),
         ),
-            sa.DateTime(timezone=True),
-            nullable=False,
-            server_default=sa.func.now(),
-        ),
-        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
         sa.UniqueConstraint("slug", name="uq_services_slug"),
     )
     op.create_index("ix_services_category_id", "services", ["category_id"])
@@ -56,39 +56,28 @@ def upgrade() -> None:
         ),
         sa.Column(
             "service_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("services.id", ondelete="RESTRICT"),
+            nullable=False,
+        ),
+        sa.Column("description", sa.Text(), nullable=False),
         sa.Column(
-            "pricing_mode",
-            sa.String(12),
+            "pricing_mode", sa.String(12), nullable=False, server_default="quote"
+        ),
+        sa.Column("price_kobo", sa.BigInteger()),
+        sa.Column("is_active", sa.Boolean(), nullable=False, server_default=sa.true()),
         sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            nullable=False,
+            server_default=sa.func.now(),
+        ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
             nullable=False,
             server_default=sa.func.now(),
         ),
-            sa.DateTime(timezone=True),
-            nullable=False,
-            server_default=sa.func.now(),
-        ),
-            server_default="quote",
-        ),
-            sa.ForeignKey("services.id", ondelete="RESTRICT"),
-            nullable=False,
-        sa.UniqueConstraint(
-            "provider_id", "service_id", name="uq_provider_services_pair"
-    op.create_index(
-    op.create_index(
-    op.create_index(
-        "ix_provider_services_is_active", "provider_services", ["is_active"]
-    )
-    )
-    )
-        sa.Column("description", sa.Text(), nullable=False),
-        sa.Column("pricing_mode", sa.String(12), nullable=False, server_default="quote"),
-        sa.Column("price_kobo", sa.BigInteger()),
-        sa.Column("is_active", sa.Boolean(), nullable=False, server_default=sa.true()),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
-        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
         sa.CheckConstraint(
             "pricing_mode IN ('from', 'fixed', 'quote')",
             name="ck_provider_services_pricing_mode",
@@ -97,11 +86,19 @@ def upgrade() -> None:
             "price_kobo IS NULL OR price_kobo > 0",
             name="ck_provider_services_price_positive",
         ),
-        sa.UniqueConstraint("provider_id", "service_id", name="uq_provider_services_pair"),
+        sa.UniqueConstraint(
+            "provider_id", "service_id", name="uq_provider_services_pair"
+        ),
     )
-    op.create_index("ix_provider_services_provider_id", "provider_services", ["provider_id"])
-    op.create_index("ix_provider_services_service_id", "provider_services", ["service_id"])
-    op.create_index("ix_provider_services_is_active", "provider_services", ["is_active"])
+    op.create_index(
+        "ix_provider_services_provider_id", "provider_services", ["provider_id"]
+    )
+    op.create_index(
+        "ix_provider_services_service_id", "provider_services", ["service_id"]
+    )
+    op.create_index(
+        "ix_provider_services_is_active", "provider_services", ["is_active"]
+    )
 
     service_table = sa.table(
         "services",
