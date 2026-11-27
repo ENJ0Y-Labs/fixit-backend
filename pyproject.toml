@@ -1,6 +1,6 @@
 [project]
 name = "fixit-backend"
-version = "0.2.0"
+version = "0.3.0"
 description = "REST API backend for the FixIt marketplace"
 requires-python = ">=3.12"
 dependencies = [
@@ -10,16 +10,18 @@ dependencies = [
     "sqlalchemy>=2.0,<3.0",
     "psycopg[binary]>=3.2,<4.0",
     "alembic>=1.14,<2.0",
+    "argon2-cffi>=23.1,<26.0",
+    "email-validator>=2.2,<3.0",
 ]
-
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 addopts = "-ra"
-
 [tool.ruff]
 line-length = 88
 target-version = "py312"
-
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
+
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = ["fastapi.Depends"]

@@ -1,7 +1,8 @@
 import uuid
+from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import CheckConstraint, String, Uuid
+from sqlalchemy import CheckConstraint, DateTime, String, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -18,16 +19,17 @@ class User(TimestampMixin, Base):
             "role IN ('customer', 'provider', 'admin')", name="ck_users_role"
         ),
     )
-
     id: Mapped[uuid.UUID] = mapped_column(
         Uuid(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
-    email: Mapped[str] = mapped_column(String(320), nullable=False, unique=True)
+    email: Mapped[str] = mapped_column(
+        String(320), nullable=False, unique=True, index=True
+    )
     phone: Mapped[str | None] = mapped_column(String(32), unique=True)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     role: Mapped[str] = mapped_column(String(20), nullable=False)
     is_active: Mapped[bool] = mapped_column(default=True, nullable=False)
-
+    email_verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     customer_profile: Mapped["CustomerProfile | None"] = relationship(
         back_populates="user", cascade="all, delete-orphan", uselist=False
     )
