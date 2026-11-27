@@ -9,13 +9,16 @@ from app.schemas.marketplace import (
     PublicCategoryEnvelope,
     PublicProviderDetailEnvelope,
     PublicProviderListEnvelope,
+    PublicServiceEnvelope,
 )
 from app.services.marketplace import (
     get_public_provider,
     list_public_categories,
     list_public_providers,
+    list_public_services,
     serialize_category,
     serialize_provider,
+    serialize_service,
 )
 
 router = APIRouter(prefix="/public", tags=["Public marketplace"])
@@ -37,10 +40,38 @@ def get_categories(
     }
 
 
+@router.get("/services", response_model=PublicServiceEnvelope)
+def get_services(
+    q: Annotated[str | None, Query(max_length=120)] = None,
+    category_id: Annotated[uuid.UUID | None, Query(alias="categoryId")] = None,
+    limit: Annotated[int, Query(ge=1, le=100)] = 20,
+    cursor: Annotated[str | None, Query(max_length=512)] = None,
+    db: Session = Depends(get_db_session),
+) -> dict:
+    try:
+        services, next_cursor = list_public_services(
+            db,
+            search=q,
+            category_id=category_id,
+            limit=limit,
+            cursor=cursor,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    return {
+        "data": {
+            "items": [serialize_service(service) for service in services],
+            "nextCursor": next_cursor,
+        }
+    }
+
+
 @router.get("/providers", response_model=PublicProviderListEnvelope)
 def get_providers(
     q: Annotated[str | None, Query(max_length=120)] = None,
     category: Annotated[str | None, Query(max_length=120)] = None,
+    service_id: Annotated[uuid.UUID | None, Query(alias="serviceId")] = None,
     city: Annotated[str | None, Query(max_length=100)] = None,
     state: Annotated[str | None, Query(max_length=100)] = None,
     limit: Annotated[int, Query(ge=1, le=50)] = 20,
@@ -52,6 +83,7 @@ def get_providers(
             db,
             search=q,
             category=category,
+            service_id=service_id,
             city=city,
             state=state,
             limit=limit,
