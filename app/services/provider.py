@@ -20,9 +20,7 @@ from app.models.user import User
 
 
 def _error(status: int, code: str, message: str) -> HTTPException:
-    return HTTPException(
-        status_code=status, detail={"code": code, "message": message}
-    )
+    return HTTPException(status_code=status, detail={"code": code, "message": message})
 
 
 def _money(kobo: int | None) -> str | None:
@@ -102,9 +100,11 @@ def update_provider_profile(db: Session, user: User, changes: dict) -> dict:
             setattr(profile, field, value if key == "displayName" else value or None)
     if "phone" in changes:
         phone = changes["phone"] or None
-        duplicate = db.scalar(
-            select(User).where(User.phone == phone, User.id != user.id)
-        ) if phone else None
+        duplicate = (
+            db.scalar(select(User).where(User.phone == phone, User.id != user.id))
+            if phone
+            else None
+        )
         if duplicate:
             raise _error(409, "PHONE_EXISTS", "This phone number is already in use.")
         user.phone = phone
@@ -255,8 +255,13 @@ def get_provider_availability(db: Session, user_id: uuid.UUID) -> dict:
             {
                 "weekday": weekday,
                 "day": (
-                    "Monday", "Tuesday", "Wednesday", "Thursday",
-                    "Friday", "Saturday", "Sunday"
+                    "Monday",
+                    "Tuesday",
+                    "Wednesday",
+                    "Thursday",
+                    "Friday",
+                    "Saturday",
+                    "Sunday",
                 )[weekday],
                 "enabled": by_day[weekday].is_enabled if weekday in by_day else False,
                 "start": (
@@ -306,9 +311,7 @@ def update_provider_availability(
     for day in payload["schedule"]:
         item = existing.get(day["weekday"])
         if item is None:
-            item = ProviderAvailabilityDay(
-                provider_id=user_id, weekday=day["weekday"]
-            )
+            item = ProviderAvailabilityDay(provider_id=user_id, weekday=day["weekday"])
             db.add(item)
         item.is_enabled = day["enabled"]
         item.start_time = day["start"] if day["enabled"] else None
@@ -319,9 +322,11 @@ def update_provider_availability(
 
 
 def _encode_cursor(value: dict) -> str:
-    return base64.urlsafe_b64encode(
-        json.dumps(value, separators=(",", ":")).encode()
-    ).decode().rstrip("=")
+    return (
+        base64.urlsafe_b64encode(json.dumps(value, separators=(",", ":")).encode())
+        .decode()
+        .rstrip("=")
+    )
 
 
 def _decode_cursor(cursor: str) -> dict:
@@ -586,21 +591,18 @@ def submit_provider_bid(
     availability = db.get(ProviderAvailability, provider_id)
     if availability and not availability.is_available:
         raise _error(
-            403, "PROVIDER_UNAVAILABLE",
-            "Set yourself available before submitting a bid."
+            403,
+            "PROVIDER_UNAVAILABLE",
+            "Set yourself available before submitting a bid.",
         )
-    job = db.scalar(
-        select(Job).where(Job.id == job_id).with_for_update()
-    )
+    job = db.scalar(select(Job).where(Job.id == job_id).with_for_update())
     if not job or job.status != "AWAITING_BIDS":
         raise _error(
-            409, "JOB_NOT_ACCEPTING_BIDS",
-            "This job is no longer accepting bids."
+            409, "JOB_NOT_ACCEPTING_BIDS", "This job is no longer accepting bids."
         )
     if job.category_id not in _provider_category_ids(db, provider_id):
         raise _error(
-            403, "PROVIDER_NOT_ELIGIBLE",
-            "Your active services do not match this job."
+            403, "PROVIDER_NOT_ELIGIBLE", "Your active services do not match this job."
         )
     existing = db.scalar(
         select(Bid).where(Bid.job_id == job_id, Bid.provider_id == provider_id)
