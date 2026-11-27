@@ -2,8 +2,8 @@
 
 from collections.abc import Sequence
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 from sqlalchemy.dialects import postgresql
 
 revision: str = "20261127_01"
@@ -15,30 +15,62 @@ depends_on: str | Sequence[str] | None = None
 def upgrade() -> None:
     op.create_table(
         "users",
-        sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True, nullable=False),
+        sa.Column(
+            "id", postgresql.UUID(as_uuid=True), primary_key=True, nullable=False
+        ),
         sa.Column("email", sa.String(320), nullable=False),
         sa.Column("phone", sa.String(32)),
         sa.Column("password_hash", sa.String(255), nullable=False),
         sa.Column("role", sa.String(20), nullable=False),
-        sa.Column("is_active", sa.Boolean(), nullable=False, server_default=sa.true()),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
-        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
-        sa.CheckConstraint("role IN ('customer', 'provider', 'admin')", name="ck_users_role"),
+        sa.Column(
+            "is_active", sa.Boolean(), nullable=False, server_default=sa.true()
+        ),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            nullable=False,
+            server_default=sa.func.now(),
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=True),
+            nullable=False,
+            server_default=sa.func.now(),
+        ),
+        sa.CheckConstraint(
+            "role IN ('customer', 'provider', 'admin')", name="ck_users_role"
+        ),
         sa.UniqueConstraint("email", name="uq_users_email"),
         sa.UniqueConstraint("phone", name="uq_users_phone"),
     )
     op.create_table(
         "service_categories",
-        sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True, nullable=False),
+        sa.Column(
+            "id", postgresql.UUID(as_uuid=True), primary_key=True, nullable=False
+        ),
         sa.Column("parent_id", postgresql.UUID(as_uuid=True)),
         sa.Column("slug", sa.String(120), nullable=False),
         sa.Column("name", sa.String(120), nullable=False),
         sa.Column("description", sa.Text()),
-        sa.Column("is_active", sa.Boolean(), nullable=False, server_default=sa.true()),
+        sa.Column(
+            "is_active", sa.Boolean(), nullable=False, server_default=sa.true()
+        ),
         sa.Column("sort_order", sa.Integer(), nullable=False, server_default="0"),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
-        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
-        sa.ForeignKeyConstraint(["parent_id"], ["service_categories.id"], ondelete="SET NULL"),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            nullable=False,
+            server_default=sa.func.now(),
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=True),
+            nullable=False,
+            server_default=sa.func.now(),
+        ),
+        sa.ForeignKeyConstraint(
+            ["parent_id"], ["service_categories.id"], ondelete="SET NULL"
+        ),
         sa.UniqueConstraint("slug", name="uq_service_categories_slug"),
     )
 
@@ -65,10 +97,25 @@ def upgrade() -> None:
     }
     for table_name, fields in profile_columns.items():
         columns = [
-            sa.Column("user_id", postgresql.UUID(as_uuid=True), primary_key=True, nullable=False),
+            sa.Column(
+                "user_id",
+                postgresql.UUID(as_uuid=True),
+                primary_key=True,
+                nullable=False,
+            ),
             *fields,
-            sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
-            sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
+            sa.Column(
+                "created_at",
+                sa.DateTime(timezone=True),
+                nullable=False,
+                server_default=sa.func.now(),
+            ),
+            sa.Column(
+                "updated_at",
+                sa.DateTime(timezone=True),
+                nullable=False,
+                server_default=sa.func.now(),
+            ),
         ]
         constraints = [
             sa.ForeignKeyConstraint(["user_id"], ["users.id"], ondelete="CASCADE")
