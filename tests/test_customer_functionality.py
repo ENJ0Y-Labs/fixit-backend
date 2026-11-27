@@ -1,4 +1,6 @@
 import uuid
+
+import pytest
 from datetime import date, time
 
 from fastapi.testclient import TestClient
@@ -119,17 +121,18 @@ def test_customer_can_create_list_edit_and_cancel_own_job(customer_client):
             "title": "Repair kitchen tap",
             "category": str(category_id),
             "description": "The kitchen tap is leaking badly.",
-            "urgency": "HIGH",
-            "preferredDate": "2026-12-01",
-            "preferredTime": "10:00:00",
-            "serviceLocation": "Rumuola, Port Harcourt",
-            "budget": 2500000,
+            "urgency": "urgent",
+            "date": "2026-12-01",
+            "time": "10:00:00",
+            "location": "Rumuola, Port Harcourt",
+            "budget": 25000,
         },
     )
     assert response.status_code == 201
     job = response.json()["data"]
     assert job["status"] == "AWAITING_BIDS"
     assert job["budgetKobo"] == 2500000
+    assert job["budget"] == "25000.00"
     job_id = job["id"]
     assert client.get("/api/v1/customer/me/jobs").json()["data"]["items"][0]["id"] == job_id
 
