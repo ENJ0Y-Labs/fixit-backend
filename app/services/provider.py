@@ -2,7 +2,7 @@ import base64
 import binascii
 import json
 import uuid
-from datetime import UTC, datetime, time
+from datetime import UTC, datetime
 from decimal import Decimal
 from zoneinfo import ZoneInfo
 
@@ -96,7 +96,9 @@ def update_provider_profile(db: Session, user: User, changes: dict) -> dict:
         if key in changes:
             value = changes[key]
             if key == "displayName" and not value:
-                raise _error(422, "DISPLAY_NAME_REQUIRED", "Display name cannot be blank.")
+                raise _error(
+                    422, "DISPLAY_NAME_REQUIRED", "Display name cannot be blank."
+                )
             setattr(profile, field, value if key == "displayName" else value or None)
     if "phone" in changes:
         phone = changes["phone"] or None
@@ -216,7 +218,9 @@ def update_provider_service(
     return _service_listing_payload(listing)
 
 
-def delete_provider_service(db: Session, user_id: uuid.UUID, listing_id: uuid.UUID) -> None:
+def delete_provider_service(
+    db: Session, user_id: uuid.UUID, listing_id: uuid.UUID
+) -> None:
     listing = db.scalar(
         select(ProviderService).where(
             ProviderService.id == listing_id, ProviderService.provider_id == user_id
@@ -248,10 +252,21 @@ def get_provider_availability(db: Session, user_id: uuid.UUID) -> dict:
         "schedule": [
             {
                 "weekday": weekday,
-                "day": ("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")[weekday],
+                "day": (
+                    "Monday", "Tuesday", "Wednesday", "Thursday",
+                    "Friday", "Saturday", "Sunday"
+                )[weekday],
                 "enabled": by_day[weekday].is_enabled if weekday in by_day else False,
-                "start": by_day[weekday].start_time.strftime("%H:%M") if weekday in by_day and by_day[weekday].start_time else None,
-                "end": by_day[weekday].end_time.strftime("%H:%M") if weekday in by_day and by_day[weekday].end_time else None,
+                "start": (
+                    by_day[weekday].start_time.strftime("%H:%M")
+                    if weekday in by_day and by_day[weekday].start_time
+                    else None
+                ),
+                "end": (
+                    by_day[weekday].end_time.strftime("%H:%M")
+                    if weekday in by_day and by_day[weekday].end_time
+                    else None
+                ),
             }
             for weekday in range(7)
         ],
@@ -259,7 +274,9 @@ def get_provider_availability(db: Session, user_id: uuid.UUID) -> dict:
     }
 
 
-def update_provider_availability(db: Session, user_id: uuid.UUID, payload: dict) -> dict:
+def update_provider_availability(
+    db: Session, user_id: uuid.UUID, payload: dict
+) -> dict:
     availability = db.get(ProviderAvailability, user_id)
     if not availability:
         availability = ProviderAvailability(
@@ -323,7 +340,9 @@ def _decode_cursor(cursor: str) -> dict:
             int(value["budget"])
         return value
     except (ValueError, TypeError, binascii.Error, UnicodeDecodeError) as exc:
-        raise _error(422, "CURSOR_INVALID", "The pagination cursor is invalid.") from exc
+        raise _error(
+            422, "CURSOR_INVALID", "The pagination cursor is invalid."
+        ) from exc
 
 
 def _job_location(customer: CustomerProfile | None) -> str:
@@ -450,7 +469,9 @@ def list_provider_opportunities(
     if cursor:
         decoded = _decode_cursor(cursor)
         if decoded.get("sort") != sort:
-            raise _error(422, "CURSOR_INVALID", "The cursor does not match this sort order.")
+            raise _error(
+                422, "CURSOR_INVALID", "The cursor does not match this sort order."
+            )
         cursor_id = uuid.UUID(decoded["id"])
         if sort == "newest":
             created_at = datetime.fromisoformat(decoded["createdAt"])
@@ -498,10 +519,14 @@ def list_provider_opportunities(
     return [_job_payload(job, customer) for job, customer in page], next_cursor
 
 
-def get_provider_opportunity(db: Session, provider_id: uuid.UUID, job_id: uuid.UUID) -> dict:
+def get_provider_opportunity(
+    db: Session, provider_id: uuid.UUID, job_id: uuid.UUID
+) -> dict:
     availability = db.get(ProviderAvailability, provider_id)
     if availability and not availability.is_available:
-        raise _error(404, "JOB_NOT_AVAILABLE", "This job is not available to this provider.")
+        raise _error(
+            404, "JOB_NOT_AVAILABLE", "This job is not available to this provider."
+        )
     categories = _provider_category_ids(db, provider_id)
     row = db.execute(
         select(Job, CustomerProfile)
@@ -554,19 +579,31 @@ def submit_provider_bid(
 ) -> dict:
     availability = db.get(ProviderAvailability, provider_id)
     if availability and not availability.is_available:
-        raise _error(403, "PROVIDER_UNAVAILABLE", "Set yourself available before submitting a bid.")
+        raise _error(
+            403, "PROVIDER_UNAVAILABLE",
+            "Set yourself available before submitting a bid."
+        )
     job = db.scalar(
         select(Job).where(Job.id == job_id).with_for_update()
     )
     if not job or job.status != "AWAITING_BIDS":
-        raise _error(409, "JOB_NOT_ACCEPTING_BIDS", "This job is no longer accepting bids.")
+        raise _error(
+            409, "JOB_NOT_ACCEPTING_BIDS",
+            "This job is no longer accepting bids."
+        )
     if job.category_id not in _provider_category_ids(db, provider_id):
-        raise _error(403, "PROVIDER_NOT_ELIGIBLE", "Your active services do not match this job.")
+        raise _error(
+            403, "PROVIDER_NOT_ELIGIBLE",
+            "Your active services do not match this job."
+        )
     existing = db.scalar(
         select(Bid).where(Bid.job_id == job_id, Bid.provider_id == provider_id)
     )
     if existing:
-        raise _error(409, "BID_ALREADY_SUBMITTED", "You have already submitted a bid for this job.")
+        raise _error(
+            409, "BID_ALREADY_SUBMITTED",
+            "You have already submitted a bid for this job."
+        )
     proposed = payload.get("proposedSchedule")
     proposed_at = None
     if proposed:
@@ -576,7 +613,9 @@ def submit_provider_bid(
                 proposed_at = proposed_at.replace(tzinfo=ZoneInfo("Africa/Lagos"))
             proposed_at = proposed_at.astimezone(UTC)
         except (ValueError, TypeError) as exc:
-            raise _error(422, "SCHEDULE_INVALID", "Use a valid proposed date and time.") from exc
+            raise _error(
+                422, "SCHEDULE_INVALID", "Use a valid proposed date and time."
+            ) from exc
     bid = Bid(
         job_id=job_id,
         provider_id=provider_id,
@@ -644,14 +683,21 @@ def update_provider_job_progress(
             if expected.tzinfo is None:
                 raise ValueError
         except ValueError as exc:
-            raise _error(422, "VERSION_INVALID", "The job update token is invalid.") from exc
+            raise _error(
+                422, "VERSION_INVALID", "The job update token is invalid."
+            ) from exc
         stored_updated_at = job.updated_at
         if stored_updated_at.tzinfo is None:
             stored_updated_at = stored_updated_at.replace(tzinfo=UTC)
         if stored_updated_at.astimezone(UTC) != expected.astimezone(UTC):
-            raise _error(409, "JOB_CHANGED", "This job changed. Refresh before updating it.")
+            raise _error(
+                409, "JOB_CHANGED", "This job changed. Refresh before updating it."
+            )
     if transition != "COMPLETE" or job.status != "IN_PROGRESS":
-        raise _error(409, "TRANSITION_NOT_ALLOWED", "This job cannot be completed from its current status.")
+        raise _error(
+            409, "TRANSITION_NOT_ALLOWED",
+            "This job cannot be completed from its current status."
+        )
     job.status = "COMPLETED"
     db.commit()
     db.refresh(job)
