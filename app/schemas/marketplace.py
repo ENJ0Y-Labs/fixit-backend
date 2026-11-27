@@ -15,10 +15,18 @@ class PublicCategoryList(BaseModel):
     nextCursor: str | None = None
 
 
+class PublicCategoryEnvelope(BaseModel):
+    data: PublicCategoryList
+
+
 class PublicProviderList(BaseModel):
     items: list[dict]
     nextCursor: str | None = None
 
 
-class PublicProviderResponse(BaseModel):
+class PublicProviderListEnvelope(BaseModel):
+    data: PublicProviderList
+
+
+class PublicProviderDetailEnvelope(BaseModel):
     data: dict
