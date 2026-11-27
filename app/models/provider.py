@@ -1,6 +1,5 @@
 import uuid
 from datetime import time
-from typing import TYPE_CHECKING
 
 from sqlalchemy import (
     Boolean,
@@ -16,9 +15,6 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 from app.models.mixins import TimestampMixin
-
-if TYPE_CHECKING:
-    from app.models.profile import ProviderProfile
 
 
 class ProviderAvailability(TimestampMixin, Base):
