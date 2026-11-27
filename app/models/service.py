@@ -57,9 +57,7 @@ class ProviderService(TimestampMixin, Base):
             "price_kobo IS NULL OR price_kobo > 0",
             name="ck_provider_services_price_positive",
         ),
-        UniqueConstraint(
-            "provider_id", "service_id", name="uq_provider_services_pair"
-        ),
+        UniqueConstraint("provider_id", "service_id", name="uq_provider_services_pair"),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(
