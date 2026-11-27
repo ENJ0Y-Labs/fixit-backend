@@ -210,7 +210,10 @@ def register(
     send_auth_email(
         to=user.email,
         subject="Verify your FixIt email",
-        text=(f"Your FixIt email verification token (valid for 30 minutes): {token}"),
+        text=(
+            "Your FixIt email verification token (valid for 30 minutes): "
+            f"{token}"
+        ),
     )
     return {"data": {"user": _user_payload(user), "verificationRequired": True}}
 
