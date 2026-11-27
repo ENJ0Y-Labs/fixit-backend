@@ -132,9 +132,7 @@ def list_customer_jobs(
     has_more = len(jobs) > limit
     page = jobs[:limit]
     next_cursor = (
-        _encode_cursor(page[-1].created_at, page[-1].id)
-        if has_more and page
-        else None
+        _encode_cursor(page[-1].created_at, page[-1].id) if has_more and page else None
     )
     return page, next_cursor
 
@@ -216,9 +214,7 @@ def update_customer_job(
     return job
 
 
-def cancel_customer_job(
-    db: Session, customer_id: uuid.UUID, job_id: uuid.UUID
-) -> Job:
+def cancel_customer_job(db: Session, customer_id: uuid.UUID, job_id: uuid.UUID) -> Job:
     job = get_customer_job(db, customer_id, job_id, for_update=True)
     if job.status != "AWAITING_BIDS":
         raise _error(409, "JOB_NOT_CANCELLABLE", "This job can no longer be cancelled.")
