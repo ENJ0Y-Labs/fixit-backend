@@ -13,6 +13,9 @@ def test_initial_migration_creates_expected_tables() -> None:
         "provider_profiles",
         "admin_profiles",
         "service_categories",
+        "jobs",
+        "bids",
+        "customer_favorites",
     }.issubset(table_names)
 
 

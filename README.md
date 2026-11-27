@@ -87,21 +87,23 @@ alembic upgrade head
 pytest -q
 ```
 
-## Public marketplace API
+## API contracts
 
-See [PUBLIC_MARKETPLACE_API.md](./PUBLIC_MARKETPLACE_API.md) for the unauthenticated category and provider discovery endpoints, filtering, pagination, and public-field rules.
+- [Public marketplace API](./PUBLIC_MARKETPLACE_API.md): unauthenticated category and provider discovery, filtering, pagination, and public-field rules.
+- [Customer API](./CUSTOMER_API.md): customer profiles, job lifecycle, bid review and acceptance, and provider favorites.
 
-## Initial database schema
+## Database schema
 
 - `users`: canonical account identity, unique email/phone, password hash, role, and active state.
-- `customer_profiles`: one-to-one customer details and default location.
-- `provider_profiles`: one-to-one public provider details, primary category, service area, and optional hourly rate stored in integer kobo.
-- `admin_profiles`: one-to-one administrative display details.
+- `customer_profiles`, `provider_profiles`, and `admin_profiles`: one-to-one role-specific profile data.
 - `service_categories`: hierarchical categories with unique slugs and active/sort ordering.
+- `jobs`: customer-owned service requests, preferred schedule/location, status, and integer-kobo budget/agreed price.
+- `bids`: provider offers linked to jobs, with integer-kobo amounts and acceptance status.
+- `customer_favorites`: unique customer/provider favorites.
 
-Profile rows use `user_id` as both primary key and foreign key. Deleting a user cascades to their profile. Deleting a category preserves provider profiles and clears their primary category.
+Profile rows use `user_id` as both primary key and foreign key. Deleting a user cascades to their profile and owned records. Customer job, bid, and favorite ownership is enforced by the API and database constraints. The customer migration seeds the categories currently shown by the customer job form.
 
-Canonical roles are `customer`, `provider`, and `admin`. Authentication flows and API contracts are implemented in a later phase. Frontend API documents remain proposals until separately approved.
+Canonical roles are `customer`, `provider`, and `admin`. Authentication, public marketplace, and customer APIs are implemented. Provider bid submission and the remaining provider/admin workflows are separate phases.
 
 ## Project structure
 
