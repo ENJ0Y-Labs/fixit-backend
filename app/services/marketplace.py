@@ -197,6 +197,7 @@ def list_public_providers(
             .where(
                 ProviderService.is_active.is_(True),
                 Service.is_active.is_(True),
+                Service.category.has(ServiceCategory.is_active.is_(True)),
                 Service.id == service_id,
             )
         )
