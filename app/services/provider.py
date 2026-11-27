@@ -687,7 +687,7 @@ def update_provider_job_progress(
         try:
             expected = datetime.fromisoformat(expected_updated_at)
             if expected.tzinfo is None:
-                raise ValueError
+                expected = expected.replace(tzinfo=UTC)
         except ValueError as exc:
             raise _error(
                 422, "VERSION_INVALID", "The job update token is invalid."
