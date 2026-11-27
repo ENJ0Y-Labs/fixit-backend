@@ -67,16 +67,20 @@ def marketplace_records(client):
                 role=role,
                 is_active=active,
             )
-            profile = ProviderProfile(
-                user=user,
-                display_name=name,
-                headline="Electrical specialist",
-                bio="Residential repairs",
-                service_area_city=city,
-                service_area_state="Rivers" if city == "Port Harcourt" else "Lagos",
-                hourly_rate_kobo=650000,
-                primary_category=category,
-            ) if role == "provider" else None
+            profile = (
+                ProviderProfile(
+                    user=user,
+                    display_name=name,
+                    headline="Electrical specialist",
+                    bio="Residential repairs",
+                    service_area_city=city,
+                    service_area_state="Rivers" if city == "Port Harcourt" else "Lagos",
+                    hourly_rate_kobo=650000,
+                    primary_category=category,
+                )
+                if role == "provider"
+                else None
+            )
             session.add(user)
             if profile:
                 session.add(profile)
@@ -131,10 +135,7 @@ def test_provider_directory_supports_category_slug_and_cursor(
 
     assert second_page.status_code == 200
     assert len(second_page.json()["data"]["items"]) == 1
-    assert (
-        first_data["items"][0]["id"]
-        != second_page.json()["data"]["items"][0]["id"]
-    )
+    assert first_data["items"][0]["id"] != second_page.json()["data"]["items"][0]["id"]
 
 
 def test_provider_profile_is_public_safe(client, marketplace_records):
