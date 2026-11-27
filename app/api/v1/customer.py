@@ -1,4 +1,5 @@
 import uuid
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.orm import Session
@@ -26,6 +27,7 @@ from app.services.customer import (
 )
 
 router = APIRouter(prefix="/customer/me", tags=["Customer"])
+CustomerUser = Annotated[User, Depends(require_role("customer"))]
 
 
 def _csrf(request: Request, db: Session, user: User) -> None:
@@ -34,7 +36,7 @@ def _csrf(request: Request, db: Session, user: User) -> None:
 
 @router.get("")
 def customer_profile(
-    user: User = Depends(require_role("customer")),
+    user: CustomerUser,
     db: Session = Depends(get_db_session),
 ):
     return {"data": get_customer_profile(db, user)}
@@ -44,7 +46,7 @@ def customer_profile(
 def patch_customer_profile(
     payload: CustomerProfileUpdate,
     request: Request,
-    user: User = Depends(require_role("customer")),
+    user: CustomerUser,
     db: Session = Depends(get_db_session),
 ):
     _csrf(request, db, user)
@@ -56,9 +58,9 @@ def patch_customer_profile(
 
 @router.get("/jobs")
 def customer_jobs(
+    user: CustomerUser,
     limit: int = Query(default=50, ge=1, le=100),
     cursor: str | None = None,
-    user: User = Depends(require_role("customer")),
     db: Session = Depends(get_db_session),
 ):
     jobs, next_cursor = list_customer_jobs(db, user.id, limit=limit, cursor=cursor)
@@ -74,7 +76,7 @@ def customer_jobs(
 def post_customer_job(
     payload: JobCreate,
     request: Request,
-    user: User = Depends(require_role("customer")),
+    user: CustomerUser,
     db: Session = Depends(get_db_session),
 ):
     _csrf(request, db, user)
@@ -85,7 +87,7 @@ def post_customer_job(
 @router.get("/jobs/{job_id}")
 def customer_job(
     job_id: uuid.UUID,
-    user: User = Depends(require_role("customer")),
+    user: CustomerUser,
     db: Session = Depends(get_db_session),
 ):
     return {"data": serialize_job(get_customer_job(db, user.id, job_id))}
@@ -96,7 +98,7 @@ def patch_customer_job(
     job_id: uuid.UUID,
     payload: JobUpdate,
     request: Request,
-    user: User = Depends(require_role("customer")),
+    user: CustomerUser,
     db: Session = Depends(get_db_session),
 ):
     _csrf(request, db, user)
@@ -110,7 +112,7 @@ def patch_customer_job(
 def post_cancel_customer_job(
     job_id: uuid.UUID,
     request: Request,
-    user: User = Depends(require_role("customer")),
+    user: CustomerUser,
     db: Session = Depends(get_db_session),
 ):
     _csrf(request, db, user)
@@ -120,7 +122,7 @@ def post_cancel_customer_job(
 @router.get("/jobs/{job_id}/bids")
 def customer_job_bids(
     job_id: uuid.UUID,
-    user: User = Depends(require_role("customer")),
+    user: CustomerUser,
     db: Session = Depends(get_db_session),
 ):
     bids = list_customer_bids(db, user.id, job_id)
@@ -132,7 +134,7 @@ def post_accept_customer_bid(
     job_id: uuid.UUID,
     bid_id: uuid.UUID,
     request: Request,
-    user: User = Depends(require_role("customer")),
+    user: CustomerUser,
     db: Session = Depends(get_db_session),
 ):
     _csrf(request, db, user)
@@ -142,7 +144,7 @@ def post_accept_customer_bid(
 
 @router.get("/favorites")
 def customer_favorites(
-    user: User = Depends(require_role("customer")),
+    user: CustomerUser,
     db: Session = Depends(get_db_session),
 ):
     profiles = list_customer_favorites(db, user.id)
@@ -153,7 +155,7 @@ def customer_favorites(
 def put_customer_favorite(
     provider_id: uuid.UUID,
     request: Request,
-    user: User = Depends(require_role("customer")),
+    user: CustomerUser,
     db: Session = Depends(get_db_session),
 ):
     _csrf(request, db, user)
@@ -165,7 +167,7 @@ def put_customer_favorite(
 def delete_customer_favorite(
     provider_id: uuid.UUID,
     request: Request,
-    user: User = Depends(require_role("customer")),
+    user: CustomerUser,
     db: Session = Depends(get_db_session),
 ):
     _csrf(request, db, user)
