@@ -48,13 +48,19 @@ def test_public_service_discovery_and_provider_service_filter():
                 name="Hidden service",
                 is_active=False,
             )
+            second_service = Service(
+                category_id=category.id,
+                slug="wiring-repair",
+                name="Wiring repair",
+                is_active=True,
+            )
             user = User(
                 email=f"{uuid.uuid4()}@example.test",
                 password_hash="not-used",
                 role="provider",
                 is_active=True,
             )
-            session.add_all([service, inactive, user])
+            session.add_all([service, inactive, second_service, user])
             session.flush()
             profile = ProviderProfile(
                 user_id=user.id,
@@ -91,8 +97,25 @@ def test_public_service_discovery_and_provider_service_filter():
 
             hidden = client.get("/api/v1/public/services")
             assert [item["name"] for item in hidden.json()["data"]["items"]] == [
-                "Socket repair"
+                "Socket repair",
+                "Wiring repair",
             ]
+
+            first_page = client.get(
+                "/api/v1/public/services", params={"limit": 1}
+            )
+            assert first_page.status_code == 200
+            first_data = first_page.json()["data"]
+            assert len(first_data["items"]) == 1
+            assert first_data["nextCursor"]
+            second_page = client.get(
+                "/api/v1/public/services",
+                params={"limit": 1, "cursor": first_data["nextCursor"]},
+            )
+            assert second_page.status_code == 200
+            second_data = second_page.json()["data"]
+            assert len(second_data["items"]) == 1
+            assert first_data["items"][0]["id"] != second_data["items"][0]["id"]
 
             providers = client.get(
                 "/api/v1/public/providers", params={"serviceId": str(service_id)}
