@@ -71,9 +71,7 @@ def provider_client():
                 ),
             ]
         )
-        category = ServiceCategory(
-            slug="plumbing", name="Plumbing", is_active=True
-        )
+        category = ServiceCategory(slug="plumbing", name="Plumbing", is_active=True)
         db.add(category)
         db.flush()
         service = Service(
@@ -206,9 +204,11 @@ def test_provider_availability_is_persisted_and_validated(provider_client):
     assert data["schedule"][1]["enabled"] is False
     with factory() as db:
         assert db.get(ProviderAvailability, ids["provider"]).timezone == "Africa/Lagos"
-        day_count = db.query(ProviderAvailabilityDay).filter_by(
-            provider_id=ids["provider"]
-        ).count()
+        day_count = (
+            db.query(ProviderAvailabilityDay)
+            .filter_by(provider_id=ids["provider"])
+            .count()
+        )
         assert day_count == 2
 
     invalid = client.put(
@@ -256,10 +256,13 @@ def test_provider_can_submit_bid_and_complete_accepted_job(provider_client):
     bid = submitted.json()["data"]["bid"]
     assert bid["price"] == "24500.00"
     assert bid["status"] == "PENDING"
-    assert client.post(
-        f"/api/v1/provider/jobs/{job_id}/bids",
-        json={"price": 24500, "message": "Duplicate quote"},
-    ).status_code == 409
+    assert (
+        client.post(
+            f"/api/v1/provider/jobs/{job_id}/bids",
+            json={"price": 24500, "message": "Duplicate quote"},
+        ).status_code
+        == 409
+    )
     with factory() as db:
         db.query(Job).filter(Job.id == job_id).update(
             {
@@ -337,7 +340,10 @@ def test_provider_cannot_access_another_providers_listing(provider_client):
         db.add(other_listing)
         db.commit()
         listing_id = other_listing.id
-    assert client.patch(
-        f"/api/v1/provider/me/services/{listing_id}",
-        json={"description": "Attempted takeover"},
-    ).status_code == 404
+    assert (
+        client.patch(
+            f"/api/v1/provider/me/services/{listing_id}",
+            json={"description": "Attempted takeover"},
+        ).status_code
+        == 404
+    )
