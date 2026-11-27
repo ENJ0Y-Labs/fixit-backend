@@ -36,15 +36,30 @@ def upgrade() -> None:
         sa.Column("preferred_time", sa.Time()),
         sa.Column("service_location", sa.String(240), nullable=False),
         sa.Column("budget_kobo", sa.BigInteger()),
-        sa.Column("status", sa.String(24), nullable=False, server_default="AWAITING_BIDS"),
+        sa.Column(
+            "status",
+            sa.String(24),
+            nullable=False,
+            server_default="AWAITING_BIDS",
+        ),
         sa.Column(
             "accepted_provider_id",
             postgresql.UUID(as_uuid=True),
             sa.ForeignKey("users.id", ondelete="SET NULL"),
         ),
         sa.Column("agreed_price_kobo", sa.BigInteger()),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
-        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            nullable=False,
+            server_default=sa.func.now(),
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=True),
+            nullable=False,
+            server_default=sa.func.now(),
+        ),
         sa.CheckConstraint(
             "urgency IN ('LOW', 'NORMAL', 'HIGH', 'URGENT')",
             name="ck_jobs_urgency",
@@ -53,7 +68,10 @@ def upgrade() -> None:
             "status IN ('AWAITING_BIDS', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED')",
             name="ck_jobs_status",
         ),
-        sa.CheckConstraint("budget_kobo IS NULL OR budget_kobo >= 0", name="ck_jobs_budget"),
+        sa.CheckConstraint(
+            "budget_kobo IS NULL OR budget_kobo >= 0",
+            name="ck_jobs_budget",
+        ),
         sa.CheckConstraint(
             "agreed_price_kobo IS NULL OR agreed_price_kobo >= 0",
             name="ck_jobs_agreed_price",
@@ -81,16 +99,24 @@ def upgrade() -> None:
         sa.Column("amount_kobo", sa.BigInteger(), nullable=False),
         sa.Column("message", sa.Text(), nullable=False),
         sa.Column("estimated_days", sa.Integer(), nullable=False),
-        sa.Column("status", sa.String(16), nullable=False, server_default="PENDING"),
+        sa.Column(
+            "status", sa.String(16), nullable=False, server_default="PENDING"
+        ),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
-        sa.CheckConstraint("amount_kobo > 0", name="ck_bids_amount_positive"),
-        sa.CheckConstraint("estimated_days > 0", name="ck_bids_estimated_days_positive"),
+        sa.CheckConstraint(
+            "amount_kobo > 0", name="ck_bids_amount_positive"
+        ),
+        sa.CheckConstraint(
+            "estimated_days > 0", name="ck_bids_estimated_days_positive"
+        ),
         sa.CheckConstraint(
             "status IN ('PENDING', 'ACCEPTED', 'DECLINED')",
             name="ck_bids_status",
         ),
-        sa.UniqueConstraint("job_id", "provider_id", name="uq_bids_job_provider"),
+        sa.UniqueConstraint(
+            "job_id", "provider_id", name="uq_bids_job_provider"
+        ),
     )
     op.create_index("ix_bids_job_id", "bids", ["job_id"])
     op.create_index("ix_bids_provider_id", "bids", ["provider_id"])
@@ -129,12 +155,54 @@ def upgrade() -> None:
     op.bulk_insert(
         category_table,
         [
-            {"id": UUID("00000000-0000-4000-8000-000000000001"), "slug": "plumbing", "name": "Plumbing", "description": "Plumbing installation and repairs", "is_active": True, "sort_order": 1},
-            {"id": UUID("00000000-0000-4000-8000-000000000002"), "slug": "electrical", "name": "Electrical", "description": "Electrical installation and repairs", "is_active": True, "sort_order": 2},
-            {"id": UUID("00000000-0000-4000-8000-000000000003"), "slug": "cleaning", "name": "Cleaning", "description": "Residential and commercial cleaning", "is_active": True, "sort_order": 3},
-            {"id": UUID("00000000-0000-4000-8000-000000000004"), "slug": "carpentry", "name": "Carpentry", "description": "Woodwork, furniture and carpentry", "is_active": True, "sort_order": 4},
-            {"id": UUID("00000000-0000-4000-8000-000000000005"), "slug": "painting", "name": "Painting", "description": "Interior and exterior painting", "is_active": True, "sort_order": 5},
-            {"id": UUID("00000000-0000-4000-8000-000000000006"), "slug": "other", "name": "Other", "description": "Other home services", "is_active": True, "sort_order": 6},
+            {
+                "id": UUID("00000000-0000-4000-8000-000000000001"),
+                "slug": "plumbing",
+                "name": "Plumbing",
+                "description": "Plumbing installation and repairs",
+                "is_active": True,
+                "sort_order": 1,
+            },
+            {
+                "id": UUID("00000000-0000-4000-8000-000000000002"),
+                "slug": "electrical",
+                "name": "Electrical",
+                "description": "Electrical installation and repairs",
+                "is_active": True,
+                "sort_order": 2,
+            },
+            {
+                "id": UUID("00000000-0000-4000-8000-000000000003"),
+                "slug": "cleaning",
+                "name": "Cleaning",
+                "description": "Residential and commercial cleaning",
+                "is_active": True,
+                "sort_order": 3,
+            },
+            {
+                "id": UUID("00000000-0000-4000-8000-000000000004"),
+                "slug": "carpentry",
+                "name": "Carpentry",
+                "description": "Woodwork, furniture and carpentry",
+                "is_active": True,
+                "sort_order": 4,
+            },
+            {
+                "id": UUID("00000000-0000-4000-8000-000000000005"),
+                "slug": "painting",
+                "name": "Painting",
+                "description": "Interior and exterior painting",
+                "is_active": True,
+                "sort_order": 5,
+            },
+            {
+                "id": UUID("00000000-0000-4000-8000-000000000006"),
+                "slug": "other",
+                "name": "Other",
+                "description": "Other home services",
+                "is_active": True,
+                "sort_order": 6,
+            },
         ],
     )
 
