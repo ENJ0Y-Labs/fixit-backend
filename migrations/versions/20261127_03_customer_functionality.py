@@ -99,9 +99,7 @@ def upgrade() -> None:
         sa.Column("amount_kobo", sa.BigInteger(), nullable=False),
         sa.Column("message", sa.Text(), nullable=False),
         sa.Column("estimated_days", sa.Integer(), nullable=False),
-        sa.Column(
-            "status", sa.String(16), nullable=False, server_default="PENDING"
-        ),
+        sa.Column("status", sa.String(16), nullable=False, server_default="PENDING"),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
@@ -114,9 +112,7 @@ def upgrade() -> None:
             nullable=False,
             server_default=sa.func.now(),
         ),
-        sa.CheckConstraint(
-            "amount_kobo > 0", name="ck_bids_amount_positive"
-        ),
+        sa.CheckConstraint("amount_kobo > 0", name="ck_bids_amount_positive"),
         sa.CheckConstraint(
             "estimated_days > 0", name="ck_bids_estimated_days_positive"
         ),
@@ -124,9 +120,7 @@ def upgrade() -> None:
             "status IN ('PENDING', 'ACCEPTED', 'DECLINED')",
             name="ck_bids_status",
         ),
-        sa.UniqueConstraint(
-            "job_id", "provider_id", name="uq_bids_job_provider"
-        ),
+        sa.UniqueConstraint("job_id", "provider_id", name="uq_bids_job_provider"),
     )
     op.create_index("ix_bids_job_id", "bids", ["job_id"])
     op.create_index("ix_bids_provider_id", "bids", ["provider_id"])
