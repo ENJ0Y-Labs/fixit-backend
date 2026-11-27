@@ -87,9 +87,10 @@ alembic upgrade head
 pytest -q
 ```
 
-## Public marketplace API
+## API contracts
 
-See [PUBLIC_MARKETPLACE_API.md](./PUBLIC_MARKETPLACE_API.md) for the unauthenticated category and provider discovery endpoints, filtering, pagination, and public-field rules.
+- [Public marketplace API](./PUBLIC_MARKETPLACE_API.md): unauthenticated category and provider discovery, filtering, pagination, and public-field rules.
+- [Customer API](./CUSTOMER_API.md): customer profiles, job lifecycle, bid review and acceptance, and provider favorites.
 
 ## Initial database schema
 
