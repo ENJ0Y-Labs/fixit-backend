@@ -187,6 +187,8 @@ def update_customer_job(
     for key, field in mapping.items():
         if key in changes:
             value = changes[key]
+            if key in {"title", "description", "urgency", "serviceLocation"} and value is None:
+                raise _error(422, "FIELD_REQUIRED", f"{key} cannot be null.")
             if key == "budget" and value is not None:
                 value = int(value * 100)
             setattr(job, field, value)
