@@ -104,7 +104,9 @@ def downgrade() -> None:
         "ck_bids_estimated_days_positive", "bids", "estimated_days > 0"
     )
     op.drop_column("bids", "proposed_schedule_at")
-    op.alter_column("bids", "estimated_days", existing_type=sa.Integer(), nullable=False)
+    op.alter_column(
+        "bids", "estimated_days", existing_type=sa.Integer(), nullable=False
+    )
     op.drop_index(
         "ix_provider_availability_days_provider_id",
         table_name="provider_availability_days",
