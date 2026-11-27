@@ -60,7 +60,9 @@ def provider_client():
                     service_area_city="Port Harcourt",
                     service_area_state="Rivers",
                 ),
-                ProviderProfile(user_id=other_provider.id, display_name="Other Provider"),
+                ProviderProfile(
+                    user_id=other_provider.id, display_name="Other Provider"
+                ),
                 CustomerProfile(
                     user_id=customer.id,
                     display_name="Customer One",
@@ -180,7 +182,8 @@ def test_provider_can_manage_only_own_service_listings(provider_client):
     )
     assert updated.status_code == 200
     assert updated.json()["data"]["description"].startswith("Pipe repairs")
-    assert client.delete(f"/api/v1/provider/me/services/{listing_id}").json()["data"]["removed"]
+    removed = client.delete(f"/api/v1/provider/me/services/{listing_id}")
+    assert removed.json()["data"]["removed"]
 
 
 def test_provider_availability_is_persisted_and_validated(provider_client):
@@ -203,7 +206,10 @@ def test_provider_availability_is_persisted_and_validated(provider_client):
     assert data["schedule"][1]["enabled"] is False
     with factory() as db:
         assert db.get(ProviderAvailability, ids["provider"]).timezone == "Africa/Lagos"
-        assert db.query(ProviderAvailabilityDay).filter_by(provider_id=ids["provider"]).count() == 2
+        day_count = db.query(ProviderAvailabilityDay).filter_by(
+            provider_id=ids["provider"]
+        ).count()
+        assert day_count == 2
 
     invalid = client.put(
         "/api/v1/provider/me/availability",
@@ -228,7 +234,10 @@ def test_provider_discovers_only_matching_jobs_without_private_address(provider_
     assert item["location"] == "Port Harcourt, Rivers"
     assert "Private Street" not in str(item)
     assert "08033333333" not in str(item)
-    assert client.get("/api/v1/provider/jobs", params={"search": "not-a-real-job"}).json()["data"]["items"] == []
+    no_matches = client.get(
+        "/api/v1/provider/jobs", params={"search": "not-a-real-job"}
+    )
+    assert no_matches.json()["data"]["items"] == []
 
 
 def test_provider_can_submit_bid_and_complete_accepted_job(provider_client):
@@ -253,9 +262,15 @@ def test_provider_can_submit_bid_and_complete_accepted_job(provider_client):
     ).status_code == 409
     with factory() as db:
         db.query(Job).filter(Job.id == job_id).update(
-            {"status": "IN_PROGRESS", "accepted_provider_id": ids["provider"], "agreed_price_kobo": 2450000}
+            {
+                "status": "IN_PROGRESS",
+                "accepted_provider_id": ids["provider"],
+                "agreed_price_kobo": 2450000,
+            }
         )
-        db.query(Bid).filter(Bid.id == uuid.UUID(bid["id"])).update({"status": "ACCEPTED"})
+        db.query(Bid).filter(Bid.id == uuid.UUID(bid["id"])).update(
+            {"status": "ACCEPTED"}
+        )
         db.commit()
 
     jobs = client.get("/api/v1/provider/me/jobs").json()["data"]["items"]
@@ -295,7 +310,11 @@ def test_provider_earnings_separate_estimates_from_agreed_amounts(provider_clien
             ]
         )
         db.query(Job).filter(Job.id == accepted_job).update(
-            {"status": "IN_PROGRESS", "accepted_provider_id": ids["provider"], "agreed_price_kobo": 2500000}
+            {
+                "status": "IN_PROGRESS",
+                "accepted_provider_id": ids["provider"],
+                "agreed_price_kobo": 2500000,
+            }
         )
         db.commit()
     response = client.get("/api/v1/provider/me/earnings")
