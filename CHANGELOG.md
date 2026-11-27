@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented here.
 
+## [0.5.0] - 2026-11-27
+
+### Added
+- Database-backed service catalogue linked to service categories.
+- Starter catalogue records for plumbing, electrical, cleaning, carpentry, and painting.
+- Public service discovery with text/category filters and cursor pagination.
+- Provider service-listing persistence linked to canonical catalogue service IDs.
+- Public provider service data and provider directory filtering by service ID.
+
+### Security
+- Hide inactive catalogue services, inactive categories, and inactive provider listings from public discovery.
+
 ## [0.4.0] - 2026-11-27
 
 ### Added
