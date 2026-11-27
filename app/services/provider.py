@@ -187,6 +187,9 @@ def create_provider_service(db: Session, user_id: uuid.UUID, payload: dict) -> d
         is_active=True,
     )
     db.add(listing)
+    profile = db.get(ProviderProfile, user_id)
+    if profile and profile.primary_category_id is None:
+        profile.primary_category_id = service.category_id
     db.commit()
     db.refresh(listing)
     listing.service = service
@@ -230,6 +233,22 @@ def delete_provider_service(
     )
     if not listing:
         raise _error(404, "SERVICE_LISTING_NOT_FOUND", "Service listing was not found.")
+    profile = db.get(ProviderProfile, user_id)
+    if profile and profile.primary_category_id == listing.service.category_id:
+        next_category_id = db.scalar(
+            select(Service.category_id)
+            .join(ProviderService, ProviderService.service_id == Service.id)
+            .where(
+                ProviderService.provider_id == user_id,
+                ProviderService.id != listing_id,
+                ProviderService.is_active.is_(True),
+                Service.is_active.is_(True),
+                Service.category.has(ServiceCategory.is_active.is_(True)),
+            )
+            .order_by(ProviderService.created_at, ProviderService.id)
+            .limit(1)
+        )
+        profile.primary_category_id = next_category_id
     db.delete(listing)
     db.commit()
 
