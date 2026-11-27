@@ -105,9 +105,7 @@ def test_public_service_discovery_and_provider_service_filter():
                 "currency": "NGN",
             }
 
-            profile_response = client.get(
-                f"/api/v1/public/providers/{provider_id}"
-            )
+            profile_response = client.get(f"/api/v1/public/providers/{provider_id}")
             assert profile_response.status_code == 200
             assert profile_response.json()["data"]["services"][0]["id"] == str(
                 service_id
