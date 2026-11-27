@@ -2,7 +2,7 @@ import base64
 import binascii
 import json
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 
 from fastapi import HTTPException
@@ -85,7 +85,7 @@ def update_customer_profile(db: Session, user: User, changes: dict) -> dict:
 def _encode_cursor(created_at: datetime, job_id: uuid.UUID) -> str:
     raw = json.dumps(
         {
-            "createdAt": created_at.astimezone(timezone.utc).isoformat(),
+            "createdAt": created_at.astimezone(UTC).isoformat(),
             "id": str(job_id),
         },
         separators=(",", ":"),
