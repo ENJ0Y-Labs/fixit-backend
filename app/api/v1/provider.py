@@ -152,7 +152,10 @@ def provider_opportunities(
     if minBudget is not None and maxBudget is not None and minBudget > maxBudget:
         raise HTTPException(
             status_code=422,
-            detail={"code": "BUDGET_RANGE_INVALID", "message": "Minimum budget cannot exceed maximum budget."},
+            detail={
+                "code": "BUDGET_RANGE_INVALID",
+                "message": "Minimum budget cannot exceed maximum budget.",
+            },
         )
     items, next_cursor = list_provider_opportunities(
         db,
