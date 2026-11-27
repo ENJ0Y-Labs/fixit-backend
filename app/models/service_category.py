@@ -9,6 +9,7 @@ from app.models.mixins import TimestampMixin
 
 if TYPE_CHECKING:
     from app.models.profile import ProviderProfile
+    from app.models.service import Service
 
 
 class ServiceCategory(TimestampMixin, Base):
@@ -34,3 +35,4 @@ class ServiceCategory(TimestampMixin, Base):
     providers: Mapped[list["ProviderProfile"]] = relationship(
         back_populates="primary_category"
     )
+    services: Mapped[list["Service"]] = relationship(back_populates="category")

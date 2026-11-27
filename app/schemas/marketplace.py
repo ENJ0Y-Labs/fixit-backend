@@ -19,6 +19,24 @@ class PublicCategoryEnvelope(BaseModel):
     data: PublicCategoryList
 
 
+class PublicService(BaseModel):
+    id: str
+    slug: str
+    name: str
+    description: str | None = None
+    sortOrder: int
+    category: PublicCategory
+
+
+class PublicServiceList(BaseModel):
+    items: list[PublicService]
+    nextCursor: str | None = None
+
+
+class PublicServiceEnvelope(BaseModel):
+    data: PublicServiceList
+
+
 class PublicProviderList(BaseModel):
     items: list[dict]
     nextCursor: str | None = None
