@@ -153,18 +153,24 @@ def test_customer_cannot_read_or_mutate_another_customers_job(customer_client):
     client, (_, _, other_id, category_id), factory = customer_client
     job_id = _job(factory, other_id, category_id)
     assert client.get(f"/api/v1/customer/me/jobs/{job_id}").status_code == 404
-    assert client.patch(
-        f"/api/v1/customer/me/jobs/{job_id}", json={"title": "Changed title"}
-    ).status_code == 404
+    assert (
+        client.patch(
+            f"/api/v1/customer/me/jobs/{job_id}", json={"title": "Changed title"}
+        ).status_code
+        == 404
+    )
     assert client.post(f"/api/v1/customer/me/jobs/{job_id}/cancel").status_code == 404
 
 
 def test_customer_cannot_edit_or_cancel_job_after_state_transition(customer_client):
     client, (customer_id, _, _, category_id), factory = customer_client
     job_id = _job(factory, customer_id, category_id, status="IN_PROGRESS")
-    assert client.patch(
-        f"/api/v1/customer/me/jobs/{job_id}", json={"title": "Changed title"}
-    ).status_code == 409
+    assert (
+        client.patch(
+            f"/api/v1/customer/me/jobs/{job_id}", json={"title": "Changed title"}
+        ).status_code
+        == 409
+    )
     assert client.post(f"/api/v1/customer/me/jobs/{job_id}/cancel").status_code == 409
 
 
@@ -202,17 +208,13 @@ def test_customer_can_view_and_accept_bid_atomically(customer_client):
     bids = client.get(f"/api/v1/customer/me/jobs/{job_id}/bids")
     assert bids.status_code == 200
     assert len(bids.json()["data"]["items"]) == 2
-    accepted = client.post(
-        f"/api/v1/customer/me/jobs/{job_id}/bids/{bid_id}/accept"
-    )
+    accepted = client.post(f"/api/v1/customer/me/jobs/{job_id}/bids/{bid_id}/accept")
     assert accepted.status_code == 200
     assert accepted.json()["data"]["status"] == "IN_PROGRESS"
     with factory() as db:
         assert db.get(Bid, bid_id).status == "ACCEPTED"
         declined_count = (
-            db.query(Bid)
-            .filter(Bid.job_id == job_id, Bid.status == "DECLINED")
-            .count()
+            db.query(Bid).filter(Bid.job_id == job_id, Bid.status == "DECLINED").count()
         )
         assert declined_count == 1
 
@@ -232,9 +234,12 @@ def test_accepting_a_bid_for_another_job_is_rejected(customer_client):
         db.add(bid)
         db.commit()
         bid_id = bid.id
-    assert client.post(
-        f"/api/v1/customer/me/jobs/{job_id}/bids/{bid_id}/accept"
-    ).status_code == 404
+    assert (
+        client.post(
+            f"/api/v1/customer/me/jobs/{job_id}/bids/{bid_id}/accept"
+        ).status_code
+        == 404
+    )
 
 
 def test_favorites_are_idempotent_and_customer_scoped(customer_client):
