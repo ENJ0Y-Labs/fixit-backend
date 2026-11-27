@@ -8,6 +8,7 @@ from sqlalchemy import (
     Date,
     ForeignKey,
     Integer,
+    DateTime,
     String,
     Text,
     Time,
@@ -85,7 +86,10 @@ class Bid(TimestampMixin, Base):
     __tablename__ = "bids"
     __table_args__ = (
         CheckConstraint("amount_kobo > 0", name="ck_bids_amount_positive"),
-        CheckConstraint("estimated_days > 0", name="ck_bids_estimated_days_positive"),
+        CheckConstraint(
+            "estimated_days IS NULL OR estimated_days > 0",
+            name="ck_bids_estimated_days_positive",
+        ),
         CheckConstraint(
             "status IN ('PENDING', 'ACCEPTED', 'DECLINED')",
             name="ck_bids_status",
@@ -112,7 +116,7 @@ class Bid(TimestampMixin, Base):
     message: Mapped[str] = mapped_column(Text, nullable=False)
     estimated_days: Mapped[int | None] = mapped_column(Integer)
     proposed_schedule_at: Mapped[datetime | None] = mapped_column(
-        __import__("sqlalchemy").DateTime(timezone=True)
+        DateTime(timezone=True)
     )
     status: Mapped[str] = mapped_column(
         String(16), nullable=False, default="PENDING", index=True
