@@ -210,10 +210,7 @@ def register(
     send_auth_email(
         to=user.email,
         subject="Verify your FixIt email",
-        text=(
-            "Your FixIt email verification token (valid for 30 minutes): "
-            f"{token}"
-        ),
+        text=(f"Your FixIt email verification token (valid for 30 minutes): {token}"),
     )
     return {"data": {"user": _user_payload(user), "verificationRequired": True}}
 
@@ -359,10 +356,7 @@ def request_verification(payload: EmailRequest, db: Session = Depends(get_db_ses
             send_auth_email(
                 to=user.email,
                 subject="Verify your FixIt email",
-                text=(
-                    "Your FixIt email verification token (valid for 30 minutes): "
-                    f"{token}"
-                ),
+                text=(f"Your FixIt email verification token (valid for 30 minutes): {token}"),
             )
     return {
         "data": {
