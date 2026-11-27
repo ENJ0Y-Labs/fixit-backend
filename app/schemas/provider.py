@@ -1,3 +1,4 @@
+import re
 from datetime import time
 from decimal import Decimal
 from typing import Literal
@@ -31,8 +32,7 @@ class ProviderProfileUpdate(BaseModel):
         if value is None:
             return None
         normalized = "".join(char for char in value if char not in " ()-")
-        if not (normalized.startswith("+234") and len(normalized) == 14
-                or normalized.startswith("0") and len(normalized) == 11):
+        if not re.fullmatch(r"(?:\+234|0)[789][01]\d{8}", normalized):
             raise ValueError("Enter a valid Nigerian phone number.")
         return normalized
 
