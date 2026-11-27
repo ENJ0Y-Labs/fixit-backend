@@ -122,7 +122,11 @@ def test_provider_directory_supports_category_slug_and_cursor(
 
     second_page = client.get(
         "/api/v1/public/providers",
-        params={"category": "electrical", "limit": 1, "cursor": first_data["nextCursor"]},
+        params={
+            "category": "electrical",
+            "limit": 1,
+            "cursor": first_data["nextCursor"],
+        },
     )
 
     assert second_page.status_code == 200
