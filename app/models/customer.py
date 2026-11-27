@@ -1,5 +1,5 @@
 import uuid
-from datetime import date, datetime, time
+from datetime import date, time
 from typing import TYPE_CHECKING
 
 from sqlalchemy import (
@@ -21,7 +21,6 @@ from app.db.base import Base
 from app.models.mixins import TimestampMixin
 
 if TYPE_CHECKING:
-    from app.models.profile import CustomerProfile, ProviderProfile
     from app.models.service_category import ServiceCategory
     from app.models.user import User
 
