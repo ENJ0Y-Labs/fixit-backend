@@ -23,6 +23,7 @@ from app.models.mixins import TimestampMixin
 if TYPE_CHECKING:
     from app.models.profile import CustomerProfile, ProviderProfile
     from app.models.service_category import ServiceCategory
+    from app.models.user import User
 
 
 class Job(TimestampMixin, Base):
@@ -106,6 +107,7 @@ class Bid(TimestampMixin, Base):
     )
 
     job: Mapped["Job"] = relationship(back_populates="bids")
+    provider: Mapped["User"] = relationship(foreign_keys=[provider_id])
 
 
 class Favorite(TimestampMixin, Base):
