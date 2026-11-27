@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from decimal import Decimal
 
 from fastapi import HTTPException
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy import and_, func, or_, select, update
 from sqlalchemy.orm import Session, joinedload, selectinload
 
@@ -133,12 +134,21 @@ def list_customer_jobs(
     return page, next_cursor
 
 
-def get_customer_job(db: Session, customer_id: uuid.UUID, job_id: uuid.UUID) -> Job:
-    job = db.scalar(
+def get_customer_job(
+    db: Session,
+    customer_id: uuid.UUID,
+    job_id: uuid.UUID,
+    *,
+    for_update: bool = False,
+) -> Job:
+    statement = (
         select(Job)
         .options(joinedload(Job.category), selectinload(Job.bids))
         .where(Job.id == job_id, Job.customer_id == customer_id)
     )
+    if for_update:
+        statement = statement.with_for_update()
+    job = db.scalar(statement)
     if not job:
         raise _error(404, "JOB_NOT_FOUND", "Job was not found.")
     return job
@@ -170,7 +180,7 @@ def create_customer_job(db: Session, customer_id: uuid.UUID, payload: dict) -> J
 def update_customer_job(
     db: Session, customer_id: uuid.UUID, job_id: uuid.UUID, changes: dict
 ) -> Job:
-    job = get_customer_job(db, customer_id, job_id)
+    job = get_customer_job(db, customer_id, job_id, for_update=True)
     if job.status != "AWAITING_BIDS":
         raise _error(409, "JOB_NOT_EDITABLE", "Only jobs awaiting bids can be edited.")
     if "category" in changes and changes["category"] is not None:
@@ -201,10 +211,15 @@ def update_customer_job(
 def cancel_customer_job(
     db: Session, customer_id: uuid.UUID, job_id: uuid.UUID
 ) -> Job:
-    job = get_customer_job(db, customer_id, job_id)
+    job = get_customer_job(db, customer_id, job_id, for_update=True)
     if job.status != "AWAITING_BIDS":
         raise _error(409, "JOB_NOT_CANCELLABLE", "This job can no longer be cancelled.")
     job.status = "CANCELLED"
+    db.execute(
+        update(Bid)
+        .where(Bid.job_id == job_id, Bid.status == "PENDING")
+        .values(status="DECLINED")
+    )
     db.commit()
     db.refresh(job)
     return job
@@ -246,6 +261,14 @@ def accept_customer_bid(
     )
     if not bid:
         raise _error(404, "BID_NOT_FOUND", "Pending bid was not found for this job.")
+    provider = db.get(User, bid.provider_id)
+    if (
+        not provider
+        or provider.role != "provider"
+        or not provider.is_active
+        or not provider.provider_profile
+    ):
+        raise _error(409, "PROVIDER_UNAVAILABLE", "This provider is no longer available.")
     job.status = "IN_PROGRESS"
     job.accepted_provider_id = bid.provider_id
     job.agreed_price_kobo = bid.amount_kobo
@@ -295,7 +318,12 @@ def add_customer_favorite(
     favorite = db.get(Favorite, (customer_id, provider_id))
     if not favorite:
         db.add(Favorite(customer_id=customer_id, provider_id=provider_id))
-        db.commit()
+        try:
+            db.commit()
+        except IntegrityError:
+            db.rollback()
+            if not db.get(Favorite, (customer_id, provider_id)):
+                raise
 
 
 def remove_customer_favorite(
