@@ -1,7 +1,6 @@
 import uuid
 from datetime import date, time
 
-import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -11,7 +10,7 @@ from app.api.v1.auth import current_user
 from app.db.base import Base
 from app.db.session import get_db_session
 from app.main import app
-from app.models.customer import Bid, Favorite, Job
+from app.models.customer import Bid, Job
 from app.models.profile import CustomerProfile, ProviderProfile
 from app.models.service_category import ServiceCategory
 from app.models.user import User
@@ -113,7 +112,7 @@ def test_customer_profile_can_be_read_and_updated(customer_client):
 
 
 def test_customer_can_create_list_edit_and_cancel_own_job(customer_client):
-    client, (_, _, _, category_id), factory = customer_client
+    client, (_, _, _, category_id), _ = customer_client
     response = client.post(
         "/api/v1/customer/me/jobs",
         json={
@@ -230,7 +229,7 @@ def test_accepting_a_bid_for_another_job_is_rejected(customer_client):
 
 
 def test_favorites_are_idempotent_and_customer_scoped(customer_client):
-    client, (_, provider_id, _, _), factory = customer_client
+    client, (_, provider_id, _, _), _ = customer_client
     url = f"/api/v1/customer/me/favorites/{provider_id}"
     assert client.put(url).status_code == 200
     assert client.put(url).status_code == 200
