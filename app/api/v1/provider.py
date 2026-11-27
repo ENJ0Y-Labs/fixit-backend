@@ -43,9 +43,7 @@ def _csrf(request: Request, db: Session, user: User) -> None:
 
 
 @router.get("/me")
-def provider_profile(
-    user: ProviderUser, db: Session = Depends(get_db_session)
-):
+def provider_profile(user: ProviderUser, db: Session = Depends(get_db_session)):
     return {"data": get_provider_profile(db, user)}
 
 
@@ -65,9 +63,7 @@ def patch_provider_profile(
 
 
 @router.get("/me/services")
-def provider_services(
-    user: ProviderUser, db: Session = Depends(get_db_session)
-):
+def provider_services(user: ProviderUser, db: Session = Depends(get_db_session)):
     return {"data": list_provider_services(db, user.id)}
 
 
@@ -79,11 +75,7 @@ def post_provider_service(
     db: Session = Depends(get_db_session),
 ):
     _csrf(request, db, user)
-    return {
-        "data": create_provider_service(
-            db, user.id, payload.model_dump()
-        )
-    }
+    return {"data": create_provider_service(db, user.id, payload.model_dump())}
 
 
 @router.patch("/me/services/{listing_id}")
@@ -115,9 +107,7 @@ def delete_provider_service_route(
 
 
 @router.get("/me/availability")
-def provider_availability(
-    user: ProviderUser, db: Session = Depends(get_db_session)
-):
+def provider_availability(user: ProviderUser, db: Session = Depends(get_db_session)):
     return {"data": get_provider_availability(db, user.id)}
 
 
@@ -129,11 +119,7 @@ def put_provider_availability(
     db: Session = Depends(get_db_session),
 ):
     _csrf(request, db, user)
-    return {
-        "data": update_provider_availability(
-            db, user.id, payload.model_dump()
-        )
-    }
+    return {"data": update_provider_availability(db, user.id, payload.model_dump())}
 
 
 @router.get("/jobs")
@@ -211,11 +197,7 @@ def provider_jobs(
     db: Session = Depends(get_db_session),
 ):
     return {
-        "data": {
-            "items": list_provider_jobs(
-                db, user.id, status=status, limit=limit
-            )
-        }
+        "data": {"items": list_provider_jobs(db, user.id, status=status, limit=limit)}
     }
 
 
