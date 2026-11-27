@@ -84,7 +84,10 @@ def update_customer_profile(db: Session, user: User, changes: dict) -> dict:
 
 def _encode_cursor(created_at: datetime, job_id: uuid.UUID) -> str:
     raw = json.dumps(
-        {"createdAt": created_at.astimezone(timezone.utc).isoformat(), "id": str(job_id)},
+        {
+            "createdAt": created_at.astimezone(timezone.utc).isoformat(),
+            "id": str(job_id),
+        },
         separators=(",", ":"),
     ).encode()
     return base64.urlsafe_b64encode(raw).decode().rstrip("=")
@@ -100,7 +103,9 @@ def _decode_cursor(cursor: str) -> tuple[datetime, uuid.UUID]:
             raise ValueError
         return created_at, job_id
     except (ValueError, TypeError, KeyError, binascii.Error, UnicodeDecodeError) as exc:
-        raise _error(422, "CURSOR_INVALID", "The pagination cursor is invalid.") from exc
+        raise _error(
+            422, "CURSOR_INVALID", "The pagination cursor is invalid."
+        ) from exc
 
 
 def list_customer_jobs(
@@ -197,7 +202,10 @@ def update_customer_job(
     for key, field in mapping.items():
         if key in changes:
             value = changes[key]
-            if key in {"title", "description", "urgency", "serviceLocation"} and value is None:
+            if (
+                key in {"title", "description", "urgency", "serviceLocation"}
+                and value is None
+            ):
                 raise _error(422, "FIELD_REQUIRED", f"{key} cannot be null.")
             if key == "budget" and value is not None:
                 value = int(value * 100)
@@ -225,7 +233,9 @@ def cancel_customer_job(
     return job
 
 
-def list_customer_bids(db: Session, customer_id: uuid.UUID, job_id: uuid.UUID) -> list[Bid]:
+def list_customer_bids(
+    db: Session, customer_id: uuid.UUID, job_id: uuid.UUID
+) -> list[Bid]:
     get_customer_job(db, customer_id, job_id)
     return list(
         db.scalars(
@@ -253,7 +263,11 @@ def accept_customer_bid(
     if not job:
         raise _error(404, "JOB_NOT_FOUND", "Job was not found.")
     if job.status != "AWAITING_BIDS":
-        raise _error(409, "JOB_NOT_ACCEPTING_BIDS", "This job is no longer accepting bids.")
+        raise _error(
+            409,
+            "JOB_NOT_ACCEPTING_BIDS",
+            "This job is no longer accepting bids.",
+        )
     bid = db.scalar(
         select(Bid).where(
             Bid.id == bid_id, Bid.job_id == job_id, Bid.status == "PENDING"
@@ -282,7 +296,9 @@ def accept_customer_bid(
     return get_customer_job(db, customer_id, job_id)
 
 
-def list_customer_favorites(db: Session, customer_id: uuid.UUID) -> list[ProviderProfile]:
+def list_customer_favorites(
+    db: Session, customer_id: uuid.UUID
+) -> list[ProviderProfile]:
     return list(
         db.scalars(
             select(ProviderProfile)
