@@ -1,6 +1,7 @@
 """Add customer jobs, bids and favorites."""
 
 from collections.abc import Sequence
+from uuid import UUID
 
 import sqlalchemy as sa
 from alembic import op
@@ -116,6 +117,27 @@ def upgrade() -> None:
         ),
     )
 
+    category_table = sa.table(
+        "service_categories",
+        sa.column("id", postgresql.UUID(as_uuid=True)),
+        sa.column("slug", sa.String),
+        sa.column("name", sa.String),
+        sa.column("description", sa.Text),
+        sa.column("is_active", sa.Boolean),
+        sa.column("sort_order", sa.Integer),
+    )
+    op.bulk_insert(
+        category_table,
+        [
+            {"id": UUID("00000000-0000-4000-8000-000000000001"), "slug": "plumbing", "name": "Plumbing", "description": "Plumbing installation and repairs", "is_active": True, "sort_order": 1},
+            {"id": UUID("00000000-0000-4000-8000-000000000002"), "slug": "electrical", "name": "Electrical", "description": "Electrical installation and repairs", "is_active": True, "sort_order": 2},
+            {"id": UUID("00000000-0000-4000-8000-000000000003"), "slug": "cleaning", "name": "Cleaning", "description": "Residential and commercial cleaning", "is_active": True, "sort_order": 3},
+            {"id": UUID("00000000-0000-4000-8000-000000000004"), "slug": "carpentry", "name": "Carpentry", "description": "Woodwork, furniture and carpentry", "is_active": True, "sort_order": 4},
+            {"id": UUID("00000000-0000-4000-8000-000000000005"), "slug": "painting", "name": "Painting", "description": "Interior and exterior painting", "is_active": True, "sort_order": 5},
+            {"id": UUID("00000000-0000-4000-8000-000000000006"), "slug": "other", "name": "Other", "description": "Other home services", "is_active": True, "sort_order": 6},
+        ],
+    )
+
 
 def downgrade() -> None:
     op.drop_table("customer_favorites")
@@ -127,3 +149,7 @@ def downgrade() -> None:
     op.drop_index("ix_jobs_category_id", table_name="jobs")
     op.drop_index("ix_jobs_customer_id", table_name="jobs")
     op.drop_table("jobs")
+    op.execute(
+        "DELETE FROM service_categories WHERE slug IN "
+        "('plumbing', 'electrical', 'cleaning', 'carpentry', 'painting', 'other')"
+    )
