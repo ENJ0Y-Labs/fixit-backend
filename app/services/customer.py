@@ -282,7 +282,9 @@ def accept_customer_bid(
         or not provider.is_active
         or not provider.provider_profile
     ):
-        raise _error(409, "PROVIDER_UNAVAILABLE", "This provider is no longer available.")
+        raise _error(
+            409, "PROVIDER_UNAVAILABLE", "This provider is no longer available."
+        )
     job.status = "IN_PROGRESS"
     job.accepted_provider_id = bid.provider_id
     job.agreed_price_kobo = bid.amount_kobo
