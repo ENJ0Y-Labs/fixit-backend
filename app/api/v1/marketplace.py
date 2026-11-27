@@ -5,9 +5,9 @@ from sqlalchemy.orm import Session
 
 from app.db.session import get_db_session
 from app.schemas.marketplace import (
-    PublicCategoryList,
-    PublicProviderList,
-    PublicProviderResponse,
+    PublicCategoryEnvelope,
+    PublicProviderDetailEnvelope,
+    PublicProviderListEnvelope,
 )
 from app.services.marketplace import (
     get_public_provider,
@@ -20,7 +20,7 @@ from app.services.marketplace import (
 router = APIRouter(prefix="/public", tags=["Public marketplace"])
 
 
-@router.get("/categories", response_model=dict)
+@router.get("/categories", response_model=PublicCategoryEnvelope)
 def get_categories(
     q: str | None = Query(default=None, max_length=120),
     parent_id: uuid.UUID | None = Query(default=None, alias="parentId"),
@@ -38,7 +38,7 @@ def get_categories(
     }
 
 
-@router.get("/providers", response_model=dict)
+@router.get("/providers", response_model=PublicProviderListEnvelope)
 def get_providers(
     q: str | None = Query(default=None, max_length=120),
     category: str | None = Query(default=None, max_length=120),
@@ -69,7 +69,9 @@ def get_providers(
     }
 
 
-@router.get("/providers/{provider_id}", response_model=dict)
+@router.get(
+    "/providers/{provider_id}", response_model=PublicProviderDetailEnvelope
+)
 def get_provider(
     provider_id: uuid.UUID,
     db: Session = Depends(get_db_session),
