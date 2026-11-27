@@ -65,10 +65,6 @@ Never commit `.env` or production secrets.
 ```bash
 alembic upgrade head
 ```
-To roll back the initial migration:
-```bash
-alembic downgrade base
-```
 
 ### 6. Run the API
 ```bash
@@ -79,7 +75,6 @@ uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 - Interactive API docs: http://127.0.0.1:8000/docs
 
 ### 7. Run checks
-The test suite expects the PostgreSQL database configured by `DATABASE_URL` to have the latest migration applied.
 ```bash
 ruff check .
 ruff format --check .
@@ -89,7 +84,7 @@ pytest -q
 
 ## API contracts
 
-- [Public marketplace API](./PUBLIC_MARKETPLACE_API.md): unauthenticated category and provider discovery, filtering, pagination, and public-field rules.
+- [Public marketplace API](./PUBLIC_MARKETPLACE_API.md): categories, service catalogue, provider discovery, filtering, pagination, and public-field rules.
 - [Customer API](./CUSTOMER_API.md): customer profiles, job lifecycle, bid review and acceptance, and provider favorites.
 
 ## Database schema
@@ -97,13 +92,13 @@ pytest -q
 - `users`: canonical account identity, unique email/phone, password hash, role, and active state.
 - `customer_profiles`, `provider_profiles`, and `admin_profiles`: one-to-one role-specific profile data.
 - `service_categories`: hierarchical categories with unique slugs and active/sort ordering.
-- `jobs`: customer-owned service requests, preferred schedule/location, status, and integer-kobo budget/agreed price.
-- `bids`: provider offers linked to jobs, with integer-kobo amounts and acceptance status.
-- `customer_favorites`: unique customer/provider favorites.
+- `services`: database-backed catalogue entries, each linked to one category.
+- `provider_services`: provider-owned service listings linked to catalogue service IDs, with description and pricing mode/amount.
+- `jobs`, `bids`, and `customer_favorites`: customer job requests, provider offers, and saved providers.
 
-Profile rows use `user_id` as both primary key and foreign key. Deleting a user cascades to their profile and owned records. Customer job, bid, and favorite ownership is enforced by the API and database constraints. The customer migration seeds the categories currently shown by the customer job form.
+Profile rows use `user_id` as both primary key and foreign key. Deleting a user cascades to their profile and owned records. Customer job, bid, and favorite ownership is enforced by the API and database constraints. Money is stored as integer kobo.
 
-Canonical roles are `customer`, `provider`, and `admin`. Authentication, public marketplace, and customer APIs are implemented. Provider bid submission and the remaining provider/admin workflows are separate phases.
+Canonical roles are `customer`, `provider`, and `admin`. Authentication, public marketplace, service catalogue, and customer APIs are implemented. Provider service-listing management, bidding, and the remaining provider/admin workflows are separate phases.
 
 ## Project structure
 
@@ -111,13 +106,9 @@ Canonical roles are `customer`, `provider`, and `admin`. Authentication, public 
 app/
   api/v1/       Versioned API routes
   core/         Application configuration
-  db/           SQLAlchemy base and session factory
+  db/           SQLAlchemy base and session
   models/       Database models
   main.py       FastAPI application entry point
-migrations/     Alembic environment and revisions
+migrations/     Alembic revisions
 tests/          Automated tests
-.env.example    Environment variable template
-alembic.ini     Alembic configuration
-pyproject.toml  Project and tool configuration
-requirements.txt
 ```
