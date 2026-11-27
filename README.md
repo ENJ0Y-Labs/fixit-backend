@@ -87,6 +87,10 @@ alembic upgrade head
 pytest -q
 ```
 
+## Public marketplace API
+
+See [PUBLIC_MARKETPLACE_API.md](./PUBLIC_MARKETPLACE_API.md) for the unauthenticated category and provider discovery endpoints, filtering, pagination, and public-field rules.
+
 ## Initial database schema
 
 - `users`: canonical account identity, unique email/phone, password hash, role, and active state.
