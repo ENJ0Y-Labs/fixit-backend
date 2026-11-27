@@ -1,7 +1,8 @@
 import uuid
+from decimal import Decimal
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.orm import Session
 
 from app.api.v1.auth import _require_csrf, require_role
@@ -141,16 +142,14 @@ def provider_opportunities(
     search: str | None = Query(default=None, max_length=120),
     category: str | None = Query(default=None, max_length=120),
     location: str | None = Query(default=None, max_length=120),
-    minBudget: float | None = Query(default=None, ge=0),
-    maxBudget: float | None = Query(default=None, ge=0),
+    minBudget: Decimal | None = Query(default=None, ge=0),
+    maxBudget: Decimal | None = Query(default=None, ge=0),
     sort: str = Query(default="newest", pattern="^(newest|budget-low|budget-high)$"),
     limit: int = Query(default=20, ge=1, le=50),
     cursor: str | None = Query(default=None, max_length=512),
     db: Session = Depends(get_db_session),
 ):
     if minBudget is not None and maxBudget is not None and minBudget > maxBudget:
-        from fastapi import HTTPException
-
         raise HTTPException(
             status_code=422,
             detail={"code": "BUDGET_RANGE_INVALID", "message": "Minimum budget cannot exceed maximum budget."},
