@@ -2,6 +2,25 @@
 
 All notable changes to this project are documented here.
 
+## [0.6.0] - 2026-11-27
+
+### Added
+- Provider profile read/update with server-side role and ownership enforcement.
+- Provider service listing management against the canonical service catalogue.
+- Persisted weekly availability schedules using an explicit IANA timezone.
+- Eligible open-job discovery with privacy-safe location fields, filters, sorting, and cursor pagination.
+- Provider bid submission and bid history with duplicate protection and optional proposed schedules.
+- Accepted-job listing and optimistic-concurrency checks for completion transitions.
+- Provider earnings summaries that separate pending quotes from agreed job amounts.
+
+### Security
+- Provider endpoints require an authenticated provider session and CSRF validation for mutations.
+- Job discovery hides customer contact details and exact service addresses before a bid is accepted.
+- Provider resource reads and mutations are scoped to the authenticated provider.
+
+### Notes
+- Payment records, payouts, withdrawals, and messaging remain outside this phase.
+
 ## [0.5.0] - 2026-11-27
 
 ### Added

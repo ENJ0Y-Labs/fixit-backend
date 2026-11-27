@@ -1,5 +1,5 @@
 import uuid
-from datetime import date, time
+from datetime import date, datetime, time
 from typing import TYPE_CHECKING
 
 from sqlalchemy import (
@@ -110,7 +110,10 @@ class Bid(TimestampMixin, Base):
     )
     amount_kobo: Mapped[int] = mapped_column(BigInteger, nullable=False)
     message: Mapped[str] = mapped_column(Text, nullable=False)
-    estimated_days: Mapped[int] = mapped_column(Integer, nullable=False)
+    estimated_days: Mapped[int | None] = mapped_column(Integer)
+    proposed_schedule_at: Mapped[datetime | None] = mapped_column(
+        __import__("sqlalchemy").DateTime(timezone=True)
+    )
     status: Mapped[str] = mapped_column(
         String(16), nullable=False, default="PENDING", index=True
     )

@@ -119,7 +119,7 @@ class BidSummary(BaseModel):
     id: str
     amountKobo: int
     message: str
-    estimatedDays: int
+    estimatedDays: int | None = None
     status: str
     provider: dict
 

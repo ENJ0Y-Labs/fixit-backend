@@ -86,6 +86,7 @@ pytest -q
 
 - [Public marketplace API](./PUBLIC_MARKETPLACE_API.md): categories, service catalogue, provider discovery, filtering, pagination, and public-field rules.
 - [Customer API](./CUSTOMER_API.md): customer profiles, job lifecycle, bid review and acceptance, and provider favorites.
+- [Provider API](./PROVIDER_API.md): provider profiles, services, availability, job discovery, bids, job progress, and earnings summaries.
 
 ## Database schema
 

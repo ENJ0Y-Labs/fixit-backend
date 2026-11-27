@@ -15,6 +15,8 @@ def test_initial_migration_creates_expected_tables() -> None:
         "service_categories",
         "services",
         "provider_services",
+        "provider_availability",
+        "provider_availability_days",
         "jobs",
         "bids",
         "customer_favorites",
