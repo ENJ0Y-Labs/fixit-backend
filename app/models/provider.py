@@ -61,6 +61,4 @@ class ProviderAvailabilityDay(TimestampMixin, Base):
     start_time: Mapped[time | None] = mapped_column(Time)
     end_time: Mapped[time | None] = mapped_column(Time)
 
-    availability: Mapped["ProviderAvailability"] = relationship(
-        back_populates="days"
-    )
+    availability: Mapped["ProviderAvailability"] = relationship(back_populates="days")
