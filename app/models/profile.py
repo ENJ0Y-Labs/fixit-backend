@@ -8,6 +8,7 @@ from app.db.base import Base
 from app.models.mixins import TimestampMixin
 
 if TYPE_CHECKING:
+    from app.models.service import ProviderService
     from app.models.service_category import ServiceCategory
     from app.models.user import User
 
@@ -50,6 +51,9 @@ class ProviderProfile(TimestampMixin, Base):
     user: Mapped["User"] = relationship(back_populates="provider_profile")
     primary_category: Mapped["ServiceCategory | None"] = relationship(
         back_populates="providers"
+    )
+    services: Mapped[list["ProviderService"]] = relationship(
+        back_populates="provider", cascade="all, delete-orphan"
     )
 
 
