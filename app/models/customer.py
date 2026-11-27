@@ -1,11 +1,12 @@
 import uuid
-from datetime import date, time
+from datetime import date, datetime, time
 from typing import TYPE_CHECKING
 
 from sqlalchemy import (
     BigInteger,
     CheckConstraint,
     Date,
+    DateTime,
     ForeignKey,
     Integer,
     String,
@@ -85,7 +86,10 @@ class Bid(TimestampMixin, Base):
     __tablename__ = "bids"
     __table_args__ = (
         CheckConstraint("amount_kobo > 0", name="ck_bids_amount_positive"),
-        CheckConstraint("estimated_days > 0", name="ck_bids_estimated_days_positive"),
+        CheckConstraint(
+            "estimated_days IS NULL OR estimated_days > 0",
+            name="ck_bids_estimated_days_positive",
+        ),
         CheckConstraint(
             "status IN ('PENDING', 'ACCEPTED', 'DECLINED')",
             name="ck_bids_status",
@@ -110,7 +114,10 @@ class Bid(TimestampMixin, Base):
     )
     amount_kobo: Mapped[int] = mapped_column(BigInteger, nullable=False)
     message: Mapped[str] = mapped_column(Text, nullable=False)
-    estimated_days: Mapped[int] = mapped_column(Integer, nullable=False)
+    estimated_days: Mapped[int | None] = mapped_column(Integer)
+    proposed_schedule_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True)
+    )
     status: Mapped[str] = mapped_column(
         String(16), nullable=False, default="PENDING", index=True
     )

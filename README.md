@@ -86,6 +86,7 @@ pytest -q
 
 - [Public marketplace API](./PUBLIC_MARKETPLACE_API.md): categories, service catalogue, provider discovery, filtering, pagination, and public-field rules.
 - [Customer API](./CUSTOMER_API.md): customer profiles, job lifecycle, bid review and acceptance, and provider favorites.
+- [Provider API](./PROVIDER_API.md): provider profiles, services, availability, job discovery, bids, job progress, and earnings summaries.
 
 ## Database schema
 
@@ -94,11 +95,12 @@ pytest -q
 - `service_categories`: hierarchical categories with unique slugs and active/sort ordering.
 - `services`: database-backed catalogue entries, each linked to one category.
 - `provider_services`: provider-owned service listings linked to catalogue service IDs, with description and pricing mode/amount.
+- `provider_availability` and `provider_availability_days`: provider availability flag, IANA timezone, and weekly working hours.
 - `jobs`, `bids`, and `customer_favorites`: customer job requests, provider offers, and saved providers.
 
 Profile rows use `user_id` as both primary key and foreign key. Deleting a user cascades to their profile and owned records. Customer job, bid, and favorite ownership is enforced by the API and database constraints. Money is stored as integer kobo.
 
-Canonical roles are `customer`, `provider`, and `admin`. Authentication, public marketplace, service catalogue, and customer APIs are implemented. Provider service-listing management, bidding, and the remaining provider/admin workflows are separate phases.
+Canonical roles are `customer`, `provider`, and `admin`. Authentication, public marketplace, service catalogue, customer APIs, and the provider profile/services/availability/job discovery/bidding/progress/earnings-summary APIs are implemented. Payment processing, payouts, withdrawals, messaging, and admin workflows are not part of the provider phase.
 
 ## Project structure
 

@@ -392,6 +392,9 @@ def serialize_bid(bid: Bid) -> dict:
         "amount": str((Decimal(bid.amount_kobo) / 100).quantize(Decimal("0.01"))),
         "message": bid.message,
         "estimatedDays": bid.estimated_days,
+        "proposedSchedule": bid.proposed_schedule_at.isoformat()
+        if bid.proposed_schedule_at
+        else None,
         "status": bid.status,
         "createdAt": bid.created_at.isoformat(),
         "provider": {

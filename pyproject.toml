@@ -1,6 +1,6 @@
 [project]
 name = "fixit-backend"
-version = "0.5.0"
+version = "0.6.0"
 description = "REST API backend for the FixIt marketplace"
 requires-python = ">=3.12"
 dependencies = [
@@ -24,4 +24,4 @@ target-version = "py312"
 select = ["E", "F", "I", "UP", "B"]
 
 [tool.ruff.lint.flake8-bugbear]
-extend-immutable-calls = ["fastapi.Depends"]
+extend-immutable-calls = ["fastapi.Depends", "fastapi.Query"]
