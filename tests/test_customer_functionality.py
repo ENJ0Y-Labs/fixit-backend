@@ -1,7 +1,7 @@
 import uuid
+from datetime import date, time
 
 import pytest
-from datetime import date, time
 
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
