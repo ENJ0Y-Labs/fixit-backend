@@ -48,7 +48,10 @@ def patch_customer_profile(
     db: Session = Depends(get_db_session),
 ):
     _csrf(request, db, user)
-    return {"data": update_customer_profile(db, user, payload.model_dump(exclude_unset=True))}
+    profile = update_customer_profile(
+        db, user, payload.model_dump(exclude_unset=True)
+    )
+    return {"data": profile}
 
 
 @router.get("/jobs")
