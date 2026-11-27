@@ -1,6 +1,6 @@
 # Customer API contract
 
-All routes are relative to `/api/v1` and require a valid session cookie. Customer routes enforce the `customer` role and scope every job/favorite query to the authenticated user. Mutating requests require the existing CSRF cookie/header pair when an Origin header is supplied.
+All routes are relative to `/api/v1` and require a valid session cookie. Customer routes enforce the `customer` role and scope every job/favorite query to the authenticated user. Mutating requests use the existing CSRF cookie/header validation when an Origin header is supplied.
 
 ## Profile
 
@@ -19,9 +19,9 @@ Editable fields: `displayName`, `defaultCity`, and `defaultState`. Email, phone,
 - `GET /customer/me/jobs/{jobId}/bids`
 - `POST /customer/me/jobs/{jobId}/bids/{bidId}/accept`
 
-Create/update fields: `title`, `category` (active category UUID or slug), `description`, `urgency` (`LOW`, `NORMAL`, `HIGH`, `URGENT`), `preferredDate`, `preferredTime`, `serviceLocation`, and `budget`. `budget` is an integer number of kobo, not naira or a floating-point value. A missing budget means no customer budget was supplied. Dates and times are ISO date/time values; they are stored separately as local preference values and are not interpreted as UTC appointment timestamps.
+Create/update fields: `title`, `category` (active category UUID, slug, or case-insensitive category name), `description`, `urgency` (`LOW`, `NORMAL`, `HIGH`, `URGENT`; the current customer form's `normal`, `urgent`, and `asap` values are normalized), `preferredDate`/`date`, `preferredTime`/`time`, `serviceLocation`/`location`, and `budget`. The current customer form submits budget in naira as a decimal number with at most two decimal places. The API converts it to integer kobo before persistence; responses include `budget` as a two-decimal naira string and `budgetKobo` as the canonical integer. No floating-point amount is stored.
 
-New jobs start as `AWAITING_BIDS`. Only jobs in that state can be edited or cancelled. The backend currently exposes `cancel` and `edit` in `availableActions` only for that state. Cancellation changes the status to `CANCELLED`.
+New jobs start as `AWAITING_BIDS`. Only jobs in that state can be edited or cancelled. The backend exposes `cancel` and `edit` in `availableActions` only for that state. Cancellation changes the status to `CANCELLED`.
 
 List responses use `{ "data": { "items": [], "nextCursor": null } }`. Cursor pagination sorts by creation time and UUID descending. Single-resource responses use `{ "data": { ... } }`.
 
