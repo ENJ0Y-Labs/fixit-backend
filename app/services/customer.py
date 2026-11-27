@@ -2,11 +2,12 @@ import base64
 import binascii
 import json
 import uuid
-from datetime import date, datetime, time, timezone
+from datetime import datetime, timezone
+from decimal import Decimal
 
 from fastapi import HTTPException
-from sqlalchemy import and_, or_, select, update
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import and_, func, or_, select, update
+from sqlalchemy.orm import Session, joinedload, selectinload
 
 from app.models.customer import Bid, Favorite, Job
 from app.models.profile import CustomerProfile, ProviderProfile
@@ -27,7 +28,10 @@ def _category(db: Session, value: str) -> ServiceCategory:
     except ValueError:
         category = db.scalar(
             select(ServiceCategory).where(
-                ServiceCategory.slug == value.lower(),
+                or_(
+                    ServiceCategory.slug == value.lower(),
+                    func.lower(ServiceCategory.name) == value.lower(),
+                ),
                 ServiceCategory.is_active.is_(True),
             )
         )
@@ -103,7 +107,7 @@ def list_customer_jobs(
 ) -> tuple[list[Job], str | None]:
     statement = (
         select(Job)
-        .options(joinedload(Job.category))
+        .options(joinedload(Job.category), selectinload(Job.bids))
         .where(Job.customer_id == customer_id)
     )
     if cursor:
@@ -132,7 +136,7 @@ def list_customer_jobs(
 def get_customer_job(db: Session, customer_id: uuid.UUID, job_id: uuid.UUID) -> Job:
     job = db.scalar(
         select(Job)
-        .options(joinedload(Job.category))
+        .options(joinedload(Job.category), selectinload(Job.bids))
         .where(Job.id == job_id, Job.customer_id == customer_id)
     )
     if not job:
@@ -151,7 +155,9 @@ def create_customer_job(db: Session, customer_id: uuid.UUID, payload: dict) -> J
         preferred_date=payload.get("preferredDate"),
         preferred_time=payload.get("preferredTime"),
         service_location=payload["serviceLocation"],
-        budget_kobo=payload.get("budget"),
+        budget_kobo=(
+            int(payload["budget"] * 100) if payload.get("budget") is not None else None
+        ),
         status="AWAITING_BIDS",
     )
     db.add(job)
@@ -180,7 +186,10 @@ def update_customer_job(
     }
     for key, field in mapping.items():
         if key in changes:
-            setattr(job, field, changes[key])
+            value = changes[key]
+            if key == "budget" and value is not None:
+                value = int(value * 100)
+            setattr(job, field, value)
     db.commit()
     db.refresh(job)
     job.category = db.get(ServiceCategory, job.category_id)
@@ -205,7 +214,11 @@ def list_customer_bids(db: Session, customer_id: uuid.UUID, job_id: uuid.UUID) -
         db.scalars(
             select(Bid)
             .join(Bid.job)
-            .options(joinedload(Bid.job), joinedload(Bid.job, Job.category))
+            .options(
+                joinedload(Bid.job),
+                joinedload(Bid.job, Job.category),
+                joinedload(Bid.provider).joinedload(User.provider_profile),
+            )
             .where(Bid.job_id == job_id)
             .order_by(Bid.created_at.asc(), Bid.id.asc())
         ).unique()
@@ -306,8 +319,18 @@ def serialize_job(job: Job) -> dict:
         "scheduledAt": None,
         "serviceLocation": job.service_location,
         "budgetKobo": job.budget_kobo,
+        "budget": (
+            str((Decimal(job.budget_kobo) / 100).quantize(Decimal("0.01")))
+            if job.budget_kobo is not None
+            else None
+        ),
         "agreedPriceKobo": job.agreed_price_kobo,
-        "bidCount": len(job.bids) if "bids" in job.__dict__ else None,
+        "agreedPrice": (
+            str((Decimal(job.agreed_price_kobo) / 100).quantize(Decimal("0.01")))
+            if job.agreed_price_kobo is not None
+            else None
+        ),
+        "bidCount": len(job.bids),
         "availableActions": actions,
         "createdAt": job.created_at.isoformat(),
         "updatedAt": job.updated_at.isoformat(),
@@ -318,15 +341,24 @@ def serialize_job(job: Job) -> dict:
 
 
 def serialize_bid(bid: Bid) -> dict:
-    profile = bid.job
+    profile = bid.provider.provider_profile
     return {
         "id": str(bid.id),
         "amountKobo": bid.amount_kobo,
+        "amount": str((Decimal(bid.amount_kobo) / 100).quantize(Decimal("0.01"))),
         "message": bid.message,
         "estimatedDays": bid.estimated_days,
         "status": bid.status,
         "createdAt": bid.created_at.isoformat(),
-        "provider": {"id": str(bid.provider_id)},
+        "provider": {
+            "id": str(bid.provider_id),
+            "name": profile.display_name if profile else "Provider",
+            **(
+                {"profession": profile.headline, "avatarUrl": profile.avatar_url}
+                if profile
+                else {}
+            ),
+        },
     }
 
 
