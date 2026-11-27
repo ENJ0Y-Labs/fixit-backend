@@ -1,7 +1,17 @@
 import uuid
 from typing import TYPE_CHECKING
 
-from sqlalchemy import BigInteger, Boolean, CheckConstraint, ForeignKey, Integer, String, Text, UniqueConstraint, Uuid
+from sqlalchemy import (
+    BigInteger,
+    Boolean,
+    CheckConstraint,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+    Uuid,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -47,7 +57,9 @@ class ProviderService(TimestampMixin, Base):
             "price_kobo IS NULL OR price_kobo > 0",
             name="ck_provider_services_price_positive",
         ),
-        UniqueConstraint("provider_id", "service_id", name="uq_provider_services_pair"),
+        UniqueConstraint(
+            "provider_id", "service_id", name="uq_provider_services_pair"
+        ),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(
@@ -66,7 +78,9 @@ class ProviderService(TimestampMixin, Base):
         index=True,
     )
     description: Mapped[str] = mapped_column(Text, nullable=False)
-    pricing_mode: Mapped[str] = mapped_column(String(12), nullable=False, default="quote")
+    pricing_mode: Mapped[str] = mapped_column(
+        String(12), nullable=False, default="quote"
+    )
     price_kobo: Mapped[int | None] = mapped_column(BigInteger)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
