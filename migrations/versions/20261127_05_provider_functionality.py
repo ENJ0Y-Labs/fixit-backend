@@ -21,16 +21,22 @@ def upgrade() -> None:
             sa.ForeignKey("provider_profiles.user_id", ondelete="CASCADE"),
             primary_key=True,
         ),
-        sa.Column("is_available", sa.Boolean(), nullable=False, server_default=sa.true()),
+        sa.Column(
+            "is_available", sa.Boolean(), nullable=False, server_default=sa.true()
+        ),
         sa.Column(
             "timezone", sa.String(64), nullable=False, server_default="Africa/Lagos"
         ),
         sa.Column(
-            "created_at", sa.DateTime(timezone=True), nullable=False,
+            "created_at",
+            sa.DateTime(timezone=True),
+            nullable=False,
             server_default=sa.func.now(),
         ),
         sa.Column(
-            "updated_at", sa.DateTime(timezone=True), nullable=False,
+            "updated_at",
+            sa.DateTime(timezone=True),
+            nullable=False,
             server_default=sa.func.now(),
         ),
     )
@@ -61,15 +67,21 @@ def upgrade() -> None:
             "AND start_time < end_time)",
             name="ck_provider_day_hours",
         ),
-        sa.UniqueConstraint("provider_id", "weekday", name="uq_provider_availability_day"),
+        sa.UniqueConstraint(
+            "provider_id", "weekday", name="uq_provider_availability_day"
+        ),
     )
     op.create_index(
         "ix_provider_availability_days_provider_id",
         "provider_availability_days",
         ["provider_id"],
     )
-    op.alter_column("bids", "estimated_days", existing_type=sa.Integer(), nullable=True)
-    op.add_column("bids", sa.Column("proposed_schedule_at", sa.DateTime(timezone=True)))
+    op.alter_column(
+        "bids", "estimated_days", existing_type=sa.Integer(), nullable=True
+    )
+    op.add_column(
+        "bids", sa.Column("proposed_schedule_at", sa.DateTime(timezone=True))
+    )
     op.drop_constraint("ck_bids_estimated_days_positive", "bids", type_="check")
     op.create_check_constraint(
         "ck_bids_estimated_days_positive",
