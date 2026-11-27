@@ -50,18 +50,26 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.Column("weekday", sa.Integer(), nullable=False),
-        sa.Column("is_enabled", sa.Boolean(), nullable=False, server_default=sa.false()),
+        sa.Column(
+            "is_enabled", sa.Boolean(), nullable=False, server_default=sa.false()
+        ),
         sa.Column("start_time", sa.Time()),
         sa.Column("end_time", sa.Time()),
         sa.Column(
-            "created_at", sa.DateTime(timezone=True), nullable=False,
+            "created_at",
+            sa.DateTime(timezone=True),
+            nullable=False,
             server_default=sa.func.now(),
         ),
         sa.Column(
-            "updated_at", sa.DateTime(timezone=True), nullable=False,
+            "updated_at",
+            sa.DateTime(timezone=True),
+            nullable=False,
             server_default=sa.func.now(),
         ),
-        sa.CheckConstraint("weekday BETWEEN 0 AND 6", name="ck_provider_day_weekday"),
+        sa.CheckConstraint(
+            "weekday BETWEEN 0 AND 6", name="ck_provider_day_weekday"
+        ),
         sa.CheckConstraint(
             "NOT is_enabled OR (start_time IS NOT NULL AND end_time IS NOT NULL "
             "AND start_time < end_time)",
